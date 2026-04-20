@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusMart | Admin Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        :root { --primary:#FFDC00; --phover:#E0C200; --bg:#1c1c1e; --card:#2a2a2e; --text:#FFFFFF; --muted:#999999; --border:rgba(255,220,0,0.2); --sidebar:230px; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+        body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; overflow-x:hidden; }
+
+        /* SIDEBAR */
+        .sidebar { width:var(--sidebar); background:#1a1a1c; border-right:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; z-index:100; }
+        .sb-brand { padding:22px 20px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:10px; text-decoration:none; color:white; font-size:18px; font-weight:800; }
+        .sb-admin { background:#f87171; color:white; font-size:10px; font-weight:800; padding:2px 7px; border-radius:4px; }
+        .sb-section { padding:16px 18px 6px; font-size:10px; font-weight:700; color:rgba(153,153,153,0.6); text-transform:uppercase; letter-spacing:0.07em; }
+        .sb-nav { padding:6px 10px; flex:1; display:flex; flex-direction:column; gap:3px; overflow-y:auto; }
+        .sb-item { display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:10px; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer; transition:0.2s; border:none; background:transparent; width:100%; text-align:left; font-family:inherit; }
+        .sb-item:hover { background:rgba(255,255,255,0.05); color:white; }
+        .sb-item.active { background:rgba(255,220,0,0.12); color:var(--primary); }
+        .sb-icon { font-size:15px; width:20px; text-align:center; }
+        .sb-count { margin-left:auto; background:rgba(248,113,113,0.2); color:#f87171; font-size:10px; font-weight:800; padding:2px 6px; border-radius:5px; }
+        .sb-foot { padding:14px 10px; border-top:1px solid rgba(255,255,255,0.06); }
+        .admin-info { display:flex; align-items:center; gap:10px; padding:10px 12px; }
+        .admin-av { width:34px; height:34px; border-radius:9px; background:rgba(248,113,113,0.2); display:flex; align-items:center; justify-content:center; font-size:16px; }
+        .admin-name { font-size:13px; font-weight:700; }
+        .admin-role { font-size:11px; color:#f87171; font-weight:600; }
+
+        /* MAIN */
+        .main { margin-left:var(--sidebar); flex:1; display:flex; flex-direction:column; min-height:100vh; }
+        .topbar { padding:14px 26px; background:rgba(26,26,28,0.97); backdrop-filter:blur(12px); border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+        .page-title { font-size:19px; font-weight:800; }
+        .topbar-right { display:flex; align-items:center; gap:12px; }
+        .search-in { padding:9px 16px; border-radius:20px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.04); color:white; font-size:13px; outline:none; width:220px; font-family:inherit; }
+        .search-in:focus { border-color:var(--primary); }
+        .search-in::placeholder { color:rgba(153,153,153,0.5); }
+        .content { padding:24px 26px; flex:1; }
+        .view { display:none; }
+        .view.active { display:block; }
+
+        /* STATS */
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:22px; }
+        .stat-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:18px; }
+        .sc-icon { font-size:20px; margin-bottom:8px; }
+        .sc-label { font-size:11px; font-weight:700; color:var(--muted); margin-bottom:6px; }
+        .sc-val { font-size:26px; font-weight:800; }
+        .sc-sub { font-size:11px; margin-top:5px; font-weight:600; }
+        .sc-green { color:#22c55e; } .sc-yellow { color:var(--primary); } .sc-red { color:#f87171; }
+
+        /* SECTION HEAD */
+        .s-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .s-head h2 { font-size:17px; font-weight:800; }
+        .s-head-right { display:flex; gap:10px; align-items:center; }
+        .filter-select { padding:7px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.04); color:var(--muted); font-size:12px; font-weight:600; outline:none; font-family:inherit; cursor:pointer; }
+        .filter-select option { background:#2a2a2e; }
+
+        /* TABLE */
+        .table-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:14px; overflow:hidden; margin-bottom:22px; }
+        table { width:100%; border-collapse:collapse; }
+        th { padding:12px 16px; text-align:left; font-size:11px; font-weight:700; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase; background:rgba(255,255,255,0.02); border-bottom:1px solid rgba(255,255,255,0.05); }
+        td { padding:13px 16px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:rgba(255,255,255,0.02); }
+        .user-cell { display:flex; align-items:center; gap:10px; }
+        .user-av { width:34px; height:34px; border-radius:9px; background:rgba(255,220,0,0.15); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:var(--primary); flex-shrink:0; }
+        .user-name { font-weight:700; font-size:13px; }
+        .user-id { font-size:11px; color:var(--muted); }
+        .badge { padding:3px 9px; border-radius:6px; font-size:11px; font-weight:700; white-space:nowrap; }
+        .b-active { background:rgba(34,197,94,0.15); color:#22c55e; }
+        .b-pending { background:rgba(245,158,11,0.15); color:#f59e0b; }
+        .b-banned { background:rgba(248,113,113,0.15); color:#f87171; }
+        .b-buyer { background:rgba(59,130,246,0.15); color:#60a5fa; }
+        .b-seller { background:rgba(34,197,94,0.15); color:#22c55e; }
+        .b-admin { background:rgba(248,113,113,0.15); color:#f87171; }
+        .btn-sm { padding:5px 12px; border-radius:7px; border:1px solid rgba(255,255,255,0.08); background:transparent; color:var(--muted); font-size:12px; font-weight:600; cursor:pointer; transition:0.2s; font-family:inherit; margin-right:3px; }
+        .btn-sm:hover { background:rgba(255,255,255,0.08); color:white; }
+        .btn-sm-approve { border-color:rgba(34,197,94,0.3); color:#22c55e; }
+        .btn-sm-approve:hover { background:rgba(34,197,94,0.12); }
+        .btn-sm-reject { border-color:rgba(248,113,113,0.3); color:#f87171; }
+        .btn-sm-reject:hover { background:rgba(248,113,113,0.12); }
+        .btn-sm-ban { border-color:rgba(248,113,113,0.3); color:#f87171; }
+        .btn-sm-ban:hover { background:rgba(248,113,113,0.12); }
+        .btn-sm-unban { border-color:rgba(34,197,94,0.3); color:#22c55e; }
+        .btn-sm-unban:hover { background:rgba(34,197,94,0.12); }
+
+        /* SELLER APPROVAL CARDS */
+        .approval-grid { display:grid; gap:14px; margin-bottom:22px; }
+        .appr-card { background:var(--card); border:2px solid rgba(245,158,11,0.3); border-radius:14px; padding:18px; }
+        .appr-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+        .appr-shop { display:flex; align-items:center; gap:12px; }
+        .appr-icon { font-size:28px; background:rgba(255,255,255,0.04); width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+        .appr-name { font-size:16px; font-weight:800; }
+        .appr-owner { font-size:12px; color:var(--muted); margin-top:2px; }
+        .appr-detail { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+        .appr-chip { font-size:12px; color:var(--muted); font-weight:600; display:flex; align-items:center; gap:5px; }
+        .appr-actions { display:flex; gap:10px; }
+        .btn-approve { padding:9px 20px; border-radius:9px; background:rgba(34,197,94,0.15); color:#22c55e; border:1px solid rgba(34,197,94,0.3); font-size:13px; font-weight:700; cursor:pointer; transition:0.2s; font-family:inherit; }
+        .btn-approve:hover { background:rgba(34,197,94,0.25); }
+        .btn-reject { padding:9px 20px; border-radius:9px; background:rgba(248,113,113,0.12); color:#f87171; border:1px solid rgba(248,113,113,0.2); font-size:13px; font-weight:700; cursor:pointer; transition:0.2s; font-family:inherit; }
+        .btn-reject:hover { background:rgba(248,113,113,0.22); }
+        .btn-view-permit { padding:9px 18px; border-radius:9px; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+
+        /* CATEGORIES */
+        .cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin-bottom:22px; }
+        .cat-card-admin { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:16px; display:flex; align-items:center; justify-content:space-between; }
+        .cat-info { display:flex; align-items:center; gap:10px; }
+        .cat-icon { font-size:22px; }
+        .cat-label { font-size:14px; font-weight:700; }
+        .cat-cnt { font-size:12px; color:var(--muted); }
+        .cat-actions { display:flex; gap:6px; }
+
+        /* AUDIT LOG */
+        .log-list { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:14px; overflow:hidden; }
+        .log-row { display:flex; align-items:flex-start; gap:14px; padding:13px 16px; border-bottom:1px solid rgba(255,255,255,0.04); }
+        .log-row:last-child { border-bottom:none; }
+        .log-dot { width:8px; height:8px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+        .log-info { flex:1; }
+        .log-action { font-size:13px; font-weight:600; }
+        .log-meta { font-size:11px; color:var(--muted); margin-top:2px; }
+        .log-time { font-size:11px; color:var(--muted); white-space:nowrap; }
+
+        /* ANNOUNCEMENT */
+        .ann-form { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:12px; max-width:560px; margin-bottom:22px; }
+        .ann-form textarea { padding:12px 14px; border-radius:11px; border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.25); color:white; font-size:13px; outline:none; min-height:80px; resize:vertical; font-family:inherit; transition:0.3s; }
+        .ann-form textarea:focus { border-color:var(--primary); }
+        .ann-type { display:flex; gap:8px; flex-wrap:wrap; }
+        .ann-chip { padding:6px 14px; border-radius:20px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; transition:0.2s; font-family:inherit; }
+        .ann-chip.sel { background:rgba(255,220,0,0.15); border-color:var(--primary); color:var(--primary); }
+        .btn-send { padding:11px 24px; background:var(--primary); color:#1c1c1e; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; align-self:flex-start; transition:0.2s; }
+        .btn-send:hover { background:var(--phover); }
+
+        /* MODAL */
+        .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); z-index:600; display:none; justify-content:center; align-items:center; padding:20px; }
+        .modal-bg.show { display:flex; }
+        .modal { background:#2a2a2e; width:100%; max-width:440px; border-radius:20px; border:1px solid var(--border); box-shadow:0 24px 48px rgba(0,0,0,0.7); }
+        .modal-head { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+        .modal-head h2 { font-size:17px; font-weight:700; }
+        .close-btn { background:transparent; border:none; color:var(--muted); font-size:18px; cursor:pointer; }
+        .modal-body { padding:22px; display:flex; flex-direction:column; gap:12px; }
+        .field label { font-size:12px; font-weight:700; color:var(--muted); display:block; margin-bottom:5px; }
+        .field input, .field textarea, .field select { width:100%; padding:11px 14px; border-radius:11px; border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.25); color:white; font-size:13px; outline:none; font-family:inherit; }
+        .field select option { background:#2a2a2e; }
+
+        /* TOAST */
+        .toast { position:fixed; bottom:28px; right:28px; background:#22c55e; color:white; padding:13px 20px; border-radius:12px; font-weight:600; font-size:14px; transform:translateY(120px); opacity:0; transition:0.35s; z-index:1000; box-shadow:0 10px 24px rgba(0,0,0,0.4); }
+        .toast.show { transform:translateY(0); opacity:1; }
+
+        @media(max-width:900px) {
+            .sidebar { transform:translateX(-100%); }
+            .main { margin-left:0; }
+            .stats-grid { grid-template-columns:1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <a href="index.html" class="sb-brand">🛒 CampusMart <span class="sb-admin">ADMIN</span></a>
+    <div class="sb-nav">
+        <div class="sb-section">Overview</div>
+        <button class="sb-item active" onclick="showView('overview',this)"><span class="sb-icon">📊</span>Dashboard</button>
+        <button class="sb-item" onclick="showView('announcement',this)"><span class="sb-icon">📣</span>Announcements</button>
+        <div class="sb-section">Management</div>
+        <button class="sb-item" onclick="showView('sellers',this)"><span class="sb-icon">🏪</span>Seller Approvals<span class="sb-count">2</span></button>
+        <button class="sb-item" onclick="showView('users',this)"><span class="sb-icon">👥</span>Users</button>
+        <button class="sb-item" onclick="showView('products-mod',this)"><span class="sb-icon">📦</span>Product Moderation</button>
+        <button class="sb-item" onclick="showView('categories',this)"><span class="sb-icon">🏷️</span>Categories</button>
+        <div class="sb-section">Logs</div>
+        <button class="sb-item" onclick="showView('audit',this)"><span class="sb-icon">📋</span>Audit Log</button>
+    </div>
+    <div class="sb-foot">
+        <div class="admin-info">
+            <div class="admin-av">🛡️</div>
+            <div><div class="admin-name">System Admin</div><div class="admin-role">Administrator</div></div>
+        </div>
+        <button class="sb-item" onclick="location.href='login.html'"><span class="sb-icon">🚪</span>Sign Out</button>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <div class="topbar">
+        <span class="page-title" id="page-title">Dashboard Overview</span>
+        <div class="topbar-right">
+            <input class="search-in" placeholder="Search users, orders..." type="text">
+            <span style="font-size:12px;color:var(--muted)">Last updated: just now</span>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- OVERVIEW -->
+        <div class="view active" id="view-overview">
+            <div class="stats-grid">
+                <div class="stat-card"><div class="sc-icon">💰</div><div class="sc-label">Total GMV This Month</div><div class="sc-val">₱128,430</div><div class="sc-sub sc-green">↑ 23% vs last month</div></div>
+                <div class="stat-card"><div class="sc-icon">👥</div><div class="sc-label">Registered Users</div><div class="sc-val">1,284</div><div class="sc-sub sc-green">+42 this week</div></div>
+                <div class="stat-card"><div class="sc-icon">🏪</div><div class="sc-label">Active Sellers</div><div class="sc-val">38</div><div class="sc-sub sc-yellow">2 pending approval</div></div>
+                <div class="stat-card"><div class="sc-icon">🧾</div><div class="sc-label">Orders This Month</div><div class="sc-val">2,841</div><div class="sc-sub sc-green">↑ 18% growth</div></div>
+                <div class="stat-card"><div class="sc-icon">📦</div><div class="sc-label">Total Products</div><div class="sc-val">512</div><div class="sc-sub" style="color:var(--muted)">8 flagged for review</div></div>
+                <div class="stat-card"><div class="sc-icon">🚫</div><div class="sc-label">Banned Accounts</div><div class="sc-val">3</div><div class="sc-sub sc-red">1 new this week</div></div>
+            </div>
+
+            <div class="s-head"><h2>Recent Platform Activity</h2></div>
+            <div class="log-list">
+                <div class="log-row"><div class="log-dot" style="background:#22c55e"></div><div class="log-info"><div class="log-action">New seller "Café CampusBrew" approved</div><div class="log-meta">by Admin · affected: seller account #1089</div></div><div class="log-time">2 min ago</div></div>
+                <div class="log-row"><div class="log-dot" style="background:#f59e0b"></div><div class="log-info"><div class="log-action">Product flagged: "Bootleg Textbook Copy"</div><div class="log-meta">Auto-flagged by content filter · seller: Book Nook</div></div><div class="log-time">18 min ago</div></div>
+                <div class="log-row"><div class="log-dot" style="background:#f87171"></div><div class="log-info"><div class="log-action">User #2023-44201 banned for policy violation</div><div class="log-meta">Reason: fraudulent payment uploads</div></div><div class="log-time">1 hr ago</div></div>
+                <div class="log-row"><div class="log-dot" style="background:#60a5fa"></div><div class="log-info"><div class="log-action">New category "Gadgets & Electronics" added</div><div class="log-meta">by Admin · 0 products currently</div></div><div class="log-time">3 hrs ago</div></div>
+                <div class="log-row"><div class="log-dot" style="background:#22c55e"></div><div class="log-info"><div class="log-action">Platform maintenance completed</div><div class="log-meta">Downtime: 8 minutes · no data loss</div></div><div class="log-time">Yesterday</div></div>
+            </div>
+        </div>
+
+        <!-- SELLER APPROVALS -->
+        <div class="view" id="view-sellers">
+            <div class="s-head"><h2>Pending Seller Approvals</h2><span style="font-size:12px;color:var(--muted);font-weight:600">2 pending review</span></div>
+            <div class="approval-grid" id="approvals-grid">
+                <div class="appr-card" id="appr-1">
+                    <div class="appr-top">
+                        <div class="appr-shop"><div class="appr-icon">🧁</div><div><div class="appr-name">Sweet Treats Corner</div><div class="appr-owner">Maria Santos · 2024-11201 · College of Business</div></div></div>
+                        <span class="badge b-pending">Pending</span>
+                    </div>
+                    <div class="appr-detail">
+                        <div class="appr-chip">📦 Category: Snacks & Desserts</div>
+                        <div class="appr-chip">🕐 Applied: Jan 15, 2025</div>
+                        <div class="appr-chip">📍 Pickup: Room 204, Business Bldg</div>
+                    </div>
+                    <div class="appr-actions">
+                        <button class="btn-approve" onclick="approveShop('appr-1','Sweet Treats Corner')">✓ Approve</button>
+                        <button class="btn-reject" onclick="rejectShop('appr-1')">✗ Reject</button>
+                        <button class="btn-view-permit">📄 View Permit</button>
+                    </div>
+                </div>
+                <div class="appr-card" id="appr-2">
+                    <div class="appr-top">
+                        <div class="appr-shop"><div class="appr-icon">🎒</div><div><div class="appr-name">StudyGear PH</div><div class="appr-owner">Carlos Reyes · 2023-08845 · College of Education</div></div></div>
+                        <span class="badge b-pending">Pending</span>
+                    </div>
+                    <div class="appr-detail">
+                        <div class="appr-chip">📦 Category: School Supplies</div>
+                        <div class="appr-chip">🕐 Applied: Jan 16, 2025</div>
+                        <div class="appr-chip">📍 Pickup: Lobby, Library Building</div>
+                    </div>
+                    <div class="appr-actions">
+                        <button class="btn-approve" onclick="approveShop('appr-2','StudyGear PH')">✓ Approve</button>
+                        <button class="btn-reject" onclick="rejectShop('appr-2')">✗ Reject</button>
+                        <button class="btn-view-permit">📄 View Permit</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="s-head" style="margin-top:8px"><h2>Active Sellers</h2></div>
+            <div class="table-card">
+                <table>
+                    <thead><tr><th>Shop</th><th>Owner</th><th>Category</th><th>Products</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        <tr><td><div class="user-cell"><div class="user-av">🍱</div><div><div class="user-name">Main Canteen</div><div class="user-id">Joined Jan 2024</div></div></div></td><td>Dept. of Student Affairs</td><td>Meals & Drinks</td><td>12</td><td><span class="badge b-active">Active</span></td><td><button class="btn-sm">View</button><button class="btn-sm btn-sm-ban">Suspend</button></td></tr>
+                        <tr><td><div class="user-cell"><div class="user-av">📚</div><div><div class="user-name">Book Nook</div><div class="user-id">Joined Mar 2024</div></div></div></td><td>Ana Cruz · 2024-00332</td><td>Books & Supplies</td><td>28</td><td><span class="badge b-active">Active</span></td><td><button class="btn-sm">View</button><button class="btn-sm btn-sm-ban">Suspend</button></td></tr>
+                        <tr><td><div class="user-cell"><div class="user-av">🧋</div><div><div class="user-name">Café CampusBrew</div><div class="user-id">Joined Jan 2025</div></div></div></td><td>Pedro Lim · 2022-55901</td><td>Drinks</td><td>9</td><td><span class="badge b-active">Active</span></td><td><button class="btn-sm">View</button><button class="btn-sm btn-sm-ban">Suspend</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- USERS -->
+        <div class="view" id="view-users">
+            <div class="s-head">
+                <h2>All Users</h2>
+                <div class="s-head-right">
+                    <select class="filter-select" id="user-filter" onchange="renderUsers()">
+                        <option value="all">All Roles</option>
+                        <option value="buyer">Buyers</option>
+                        <option value="seller">Sellers</option>
+                        <option value="banned">Banned</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-card">
+                <table>
+                    <thead><tr><th>User</th><th>Student ID</th><th>Department</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="users-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PRODUCT MODERATION -->
+        <div class="view" id="view-products-mod">
+            <div class="s-head"><h2>Product Moderation</h2><div class="s-head-right"><select class="filter-select"><option>All Products</option><option>Flagged</option><option>Hidden</option></select></div></div>
+            <div class="table-card">
+                <table>
+                    <thead><tr><th>Product</th><th>Seller</th><th>Price</th><th>Stock</th><th>Flag</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        <tr><td><div class="user-cell"><span style="font-size:22px;margin-right:10px">📕</span><div><div class="user-name" style="font-size:13px">Bootleg Textbook Copy</div><div class="user-id">Books · Listed Jan 16</div></div></div></td><td>Book Nook</td><td>₱180</td><td>5</td><td><span class="badge b-banned">Copyright Issue</span></td><td><button class="btn-sm">View</button><button class="btn-sm btn-sm-reject">Hide</button><button class="btn-sm btn-sm-reject">Remove</button></td></tr>
+                        <tr><td><div class="user-cell"><span style="font-size:22px;margin-right:10px">🍱</span><div><div class="user-name" style="font-size:13px">Pork Sisig Rice Bowl</div><div class="user-id">Meals · Listed Dec 2024</div></div></div></td><td>Main Canteen</td><td>₱85</td><td>30</td><td><span class="badge b-active">Clean</span></td><td><button class="btn-sm">View</button></td></tr>
+                        <tr><td><div class="user-cell"><span style="font-size:22px;margin-right:10px">👕</span><div><div class="user-name" style="font-size:13px">IT Department Polo</div><div class="user-id">Uniforms · Listed Nov 2024</div></div></div></td><td>UniShop PH</td><td>₱650</td><td>12</td><td><span class="badge b-active">Clean</span></td><td><button class="btn-sm">View</button></td></tr>
+                        <tr><td><div class="user-cell"><span style="font-size:22px;margin-right:10px">🧋</span><div><div class="user-name" style="font-size:13px">Overpriced Milk Tea ×3</div><div class="user-id">Drinks · Listed Jan 17</div></div></div></td><td>Café CampusBrew</td><td>₱450</td><td>20</td><td><span class="badge b-pending">Price Review</span></td><td><button class="btn-sm">View</button><button class="btn-sm btn-sm-reject">Hide</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CATEGORIES -->
+        <div class="view" id="view-categories">
+            <div class="s-head"><h2>Platform Categories</h2><button onclick="openAddCat()" style="background:var(--primary);color:#1c1c1e;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">＋ Add Category</button></div>
+            <div class="cat-grid" id="cat-grid"></div>
+        </div>
+
+        <!-- AUDIT LOG -->
+        <div class="view" id="view-audit">
+            <div class="s-head"><h2>Audit Log</h2><span style="font-size:12px;color:var(--muted);font-weight:600">Read-only · All admin actions</span></div>
+            <div class="log-list" id="audit-log"></div>
+        </div>
+
+        <!-- ANNOUNCEMENTS -->
+        <div class="view" id="view-announcement">
+            <div class="s-head"><h2>Push Announcement</h2></div>
+            <div class="ann-form">
+                <div style="font-size:13px;font-weight:700;color:var(--muted)">Announcement Type</div>
+                <div class="ann-type">
+                    <button class="ann-chip sel" onclick="selAnnType(this)">📢 General</button>
+                    <button class="ann-chip" onclick="selAnnType(this)">⚠️ Maintenance</button>
+                    <button class="ann-chip" onclick="selAnnType(this)">🎉 Promo</button>
+                    <button class="ann-chip" onclick="selAnnType(this)">🔒 Security</button>
+                </div>
+                <textarea id="ann-text" placeholder="Type your announcement message here..."></textarea>
+                <div style="font-size:12px;color:var(--muted);font-weight:600">Send to: All users (buyers + sellers)</div>
+                <button class="btn-send" onclick="sendAnn()">Send Announcement →</button>
+            </div>
+            <div class="s-head"><h2>Past Announcements</h2></div>
+            <div class="log-list">
+                <div class="log-row"><div class="log-dot" style="background:#22c55e"></div><div class="log-info"><div class="log-action">📢 CampusMart is now open for the 2nd semester!</div><div class="log-meta">General · Sent to 1,284 users</div></div><div class="log-time">Jan 6, 2025</div></div>
+                <div class="log-row"><div class="log-dot" style="background:#f59e0b"></div><div class="log-info"><div class="log-action">⚠️ Scheduled maintenance on Jan 10, Friday 6–8PM</div><div class="log-meta">Maintenance · Sent to 1,241 users</div></div><div class="log-time">Jan 9, 2025</div></div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ADD CATEGORY MODAL -->
+<div class="modal-bg" id="addcat-modal">
+    <div class="modal">
+        <div class="modal-head"><h2>Add Category</h2><button class="close-btn" onclick="document.getElementById('addcat-modal').classList.remove('show')">✕</button></div>
+        <div class="modal-body">
+            <div class="field"><label>Category Name</label><input type="text" id="nc-name" placeholder="e.g. Gadgets & Electronics"></div>
+            <div class="field"><label>Emoji Icon</label><input type="text" id="nc-icon" placeholder="e.g. 📱" maxlength="2"></div>
+            <button onclick="addCategory()" style="background:var(--primary);color:#1c1c1e;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Add Category</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    // ---- VIEWS ----
+    function showView(id, btn) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('active'));
+        document.getElementById('view-'+id).classList.add('active');
+        btn.classList.add('active');
+        const titles = {overview:'Dashboard Overview',sellers:'Seller Approvals',users:'User Management','products-mod':'Product Moderation',categories:'Category Manager',audit:'Audit Log',announcement:'Announcements'};
+        document.getElementById('page-title').textContent = titles[id] || id;
+    }
+
+    // ---- USERS TABLE ----
+    const USERS = [
+        {name:'Juan Dela Cruz', initials:'JD', id:'2024-12345', dept:'IT', role:'buyer', status:'active'},
+        {name:'Maria Santos', initials:'MS', id:'2024-11201', dept:'Business', role:'seller', status:'active'},
+        {name:'Carlos Reyes', initials:'CR', id:'2023-08845', dept:'Education', role:'buyer', status:'active'},
+        {name:'Ana Cruz', initials:'AC', id:'2024-00332', dept:'Engineering', role:'seller', status:'active'},
+        {name:'Pedro Villanueva', initials:'PV', id:'2022-44201', dept:'Nursing', role:'buyer', status:'banned'},
+        {name:'Luz Bautista', initials:'LB', id:'2023-77701', dept:'Arts', role:'buyer', status:'active'},
+    ];
+
+    function renderUsers() {
+        const filter = document.getElementById('user-filter').value;
+        const filtered = USERS.filter(u => filter === 'all' || u.role === filter || (filter === 'banned' && u.status === 'banned'));
+        const tb = document.getElementById('users-table');
+        const roleClass = {buyer:'b-buyer', seller:'b-seller', admin:'b-admin'};
+        tb.innerHTML = filtered.map(u => `<tr>
+            <td><div class="user-cell"><div class="user-av">${u.initials}</div><div><div class="user-name">${u.name}</div><div class="user-id">${u.id}</div></div></div></td>
+            <td>${u.id}</td><td>${u.dept}</td>
+            <td><span class="badge ${roleClass[u.role]}">${u.role}</span></td>
+            <td><span class="badge ${u.status==='active'?'b-active':'b-banned'}">${u.status}</span></td>
+            <td>
+                <button class="btn-sm">View</button>
+                ${u.status==='active'
+                    ? `<button class="btn-sm btn-sm-ban" onclick="toggleBan('${u.id}',true)">Ban</button>`
+                    : `<button class="btn-sm btn-sm-unban" onclick="toggleBan('${u.id}',false)">Unban</button>`}
+            </td>
+        </tr>`).join('');
+    }
+
+    function toggleBan(id, ban) {
+        const u = USERS.find(x => x.id === id);
+        if (u) { u.status = ban ? 'banned' : 'active'; renderUsers(); showToast(ban ? '🚫 User banned.' : '✅ User unbanned.', ban ? '#ef4444' : '#22c55e'); addLog(ban ? `User ${id} banned` : `User ${id} unbanned`); }
+    }
+
+    renderUsers();
+
+    // ---- SELLER APPROVALS ----
+    function approveShop(cardId, name) {
+        const card = document.getElementById(cardId);
+        if (card) { card.remove(); showToast(`✅ ${name} approved as seller!`); addLog(`Seller "${name}" approved`); }
+    }
+    function rejectShop(cardId) {
+        const card = document.getElementById(cardId);
+        const reason = prompt('Reason for rejection (shown to applicant):');
+        if (reason !== null && card) { card.remove(); showToast('❌ Seller application rejected.', '#ef4444'); addLog(`Seller application rejected. Reason: ${reason||'Not specified'}`); }
+    }
+
+    // ---- CATEGORIES ----
+    const CATS = [
+        {icon:'👕',name:'Uniforms',count:24},{icon:'🍱',name:'Meals',count:38},{icon:'🧋',name:'Drinks',count:29},
+        {icon:'✏️',name:'Supplies',count:65},{icon:'📚',name:'Books',count:47},{icon:'🎒',name:'Merch',count:18},
+    ];
+    function renderCats() {
+        document.getElementById('cat-grid').innerHTML = CATS.map((c,i) => `
+            <div class="cat-card-admin">
+                <div class="cat-info"><div class="cat-icon">${c.icon}</div><div><div class="cat-label">${c.name}</div><div class="cat-cnt">${c.count} products</div></div></div>
+                <div class="cat-actions"><button class="btn-sm">Edit</button><button class="btn-sm btn-sm-reject" onclick="deleteCat(${i})">Remove</button></div>
+            </div>`).join('');
+    }
+    function openAddCat() { document.getElementById('addcat-modal').classList.add('show'); }
+    function addCategory() {
+        const name = document.getElementById('nc-name').value.trim();
+        const icon = document.getElementById('nc-icon').value.trim() || '📦';
+        if (!name) return;
+        CATS.push({icon, name, count:0});
+        renderCats();
+        document.getElementById('addcat-modal').classList.remove('show');
+        showToast('✅ Category added!');
+        addLog(`Category "${name}" added`);
+        document.getElementById('nc-name').value = '';
+        document.getElementById('nc-icon').value = '';
+    }
+    function deleteCat(i) {
+        if (!confirm('Remove this category?')) return;
+        const name = CATS[i].name;
+        CATS.splice(i,1); renderCats();
+        showToast('🗑️ Category removed.','#ef4444');
+        addLog(`Category "${name}" removed`);
+    }
+    renderCats();
+    document.getElementById('addcat-modal').addEventListener('click', e => { if(e.target===e.currentTarget) e.target.classList.remove('show'); });
+
+    // ---- AUDIT LOG ----
+    const AUDIT_ENTRIES = [
+        {color:'#22c55e', action:'Seller "Café CampusBrew" approved', meta:'Admin action', time:'2 min ago'},
+        {color:'#f59e0b', action:'Product "Bootleg Textbook" flagged', meta:'Content filter', time:'18 min ago'},
+        {color:'#f87171', action:'User 2023-44201 banned', meta:'Reason: fraudulent upload', time:'1 hr ago'},
+        {color:'#60a5fa', action:'Category "Gadgets" added', meta:'Admin action', time:'3 hrs ago'},
+    ];
+    function addLog(action) { AUDIT_ENTRIES.unshift({color:'#FFDC00', action, meta:'Admin action', time:'just now'}); renderAudit(); }
+    function renderAudit() {
+        document.getElementById('audit-log').innerHTML = AUDIT_ENTRIES.map(e => `
+            <div class="log-row"><div class="log-dot" style="background:${e.color}"></div>
+            <div class="log-info"><div class="log-action">${e.action}</div><div class="log-meta">${e.meta}</div></div>
+            <div class="log-time">${e.time}</div></div>`).join('');
+    }
+    renderAudit();
+
+    // ---- ANNOUNCEMENT ----
+    function selAnnType(btn) { document.querySelectorAll('.ann-chip').forEach(b => b.classList.remove('sel')); btn.classList.add('sel'); }
+    function sendAnn() {
+        const txt = document.getElementById('ann-text').value.trim();
+        if (!txt) { showToast('⚠️ Please type a message.','#f59e0b'); return; }
+        showToast('📣 Announcement sent to all users!');
+        document.getElementById('ann-text').value = '';
+        addLog(`Announcement sent: "${txt.substring(0,60)}${txt.length>60?'...':''}"`);
+    }
+
+    // ---- TOAST ----
+    let tt;
+    function showToast(msg, color='#22c55e') {
+        clearTimeout(tt);
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.style.background = color;
+        t.classList.add('show');
+        tt = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusMart | Student Portal</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --primary: #FFDC00;
+            --primary-d: #c98b00;
+            --bg: #1c1c1e;
+            --card: #2a2a2e;
+            --muted: #999;
+            --border: rgba(255,220,0,0.18);
+            --inp: rgba(0,0,0,0.25);
+            --dur: 0.8s;
+            --ease: cubic-bezier(0.76, 0, 0.24, 1);
+        }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+        body { background:var(--bg); color:#fff; min-height:100vh; display:flex; flex-direction:column; }
+
+        nav {
+            background: rgba(28,28,30,0.96);
+            backdrop-filter: blur(12px);
+            padding: 18px 7%;
+            display: flex; justify-content: space-between; align-items: center;
+            position: fixed; width: 100%; top: 0; z-index: 300;
+            border-bottom: 1px solid var(--border);
+        }
+        .brand { font-size:20px; font-weight:800; color:#fff; text-decoration:none; }
+        .back  { color:var(--muted); text-decoration:none; font-size:13px; font-weight:600; transition:color .2s; }
+        .back:hover { color:var(--primary); }
+
+        .wrap {
+            flex:1; display:flex; justify-content:center; align-items:center;
+            padding: 90px 16px 40px; min-height:100vh;
+        }
+
+        /* ── CARD ── */
+        .card {
+            position: relative;
+            width: 860px; max-width: 100%;
+            height: 560px;
+            background: var(--card);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.65);
+            border: 1px solid var(--border);
+        }
+
+        /* ── FORM WRAP (Left Side Default) ── */
+        .form-wrap {
+            position: absolute;
+            top:0; left:0; bottom:0;  
+            width: 55%;
+            overflow: hidden;
+            transition: transform var(--dur) var(--ease);
+        }
+        .panel {
+            position: absolute;
+            inset: 0;
+            padding: 44px 42px;
+            display: flex; flex-direction: column; justify-content: center;
+            will-change: transform, opacity;
+            transition:
+                transform var(--dur) var(--ease),
+                opacity   calc(var(--dur)*0.55) ease;
+        }
+
+        #pLogin { transform:translateX(0);    opacity:1; pointer-events:all; }
+        
+        #pReg   {
+            transform:translateX(-110%); opacity:0; pointer-events:none; 
+            justify-content: flex-start;
+            overflow-y: auto;
+            padding-top: 28px;
+            padding-bottom: 28px;
+        }
+        #pReg::-webkit-scrollbar { width:3px; }
+        #pReg::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:2px; }
+
+        /* Animation when swapping to Register */
+        .card.reg .form-wrap {
+            transform: translateX(81.81%); /* Move form wrap to the right */
+        }
+        .card.reg #pLogin { transform:translateX(110%); opacity:0; pointer-events:none; }
+        .card.reg #pReg   { transform:translateX(0);     opacity:1; pointer-events:all; }
+
+        /* ── OVERLAY (Right Side Default) ── */
+        .overlay {
+            position: absolute;
+            top: 0; left: 55%; 
+            width: 45%; height: 100%;
+            z-index: 10;
+            transition: transform var(--dur) var(--ease);
+            will-change: transform;
+            pointer-events: none;
+        }
+
+        .ov-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%; height: 100%;
+            overflow: visible;
+            /* Gi-remove nako ang transform: scaleX(-1) aron dili mabali ang curve */
+        }
+
+        .ov-face {
+            position: absolute;
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            
+            /* Proper padding to avoid the curve */
+            padding: 48px 30px 48px 130px; 
+            
+            text-align: center;
+            pointer-events: all;
+            transition: opacity calc(var(--dur)*0.35) ease;
+        }
+        .lf { opacity:1; transition-delay:0s; }
+        .rf { opacity:0; transition-delay:0s; }
+        .card.reg .lf { opacity:0; transition-delay:0s; }
+        .card.reg .rf { opacity:1; transition-delay:calc(var(--dur)*0.48); }
+
+        .card.reg .ov-face {
+            padding: 48px 130px 48px 30px;
+        }
+
+        .card.reg .overlay {
+            transform: translateX(-122.22%); /* Move overlay to the left */
+        }
+
+        .ov-icon  { font-size:36px; margin-bottom:14px; }
+        .ov-title { font-size:24px; font-weight:800; color:#1c1c1e; letter-spacing:-.5px; margin-bottom:10px; }
+        .ov-sub   { font-size:13px; color:rgba(28,28,30,.65); line-height:1.65; margin-bottom:28px; font-weight:500; }
+        .ov-btn {
+            background: transparent;
+            border: 2px solid #1c1c1e; color:#1c1c1e;
+            padding:10px 34px; border-radius:50px;
+            font-weight:700; font-size:13px; letter-spacing:.6px;
+            cursor:pointer; font-family:inherit;
+            transition: background .2s, transform .2s;
+            position: relative; z-index: 2;
+        }
+        .ov-btn:hover { background:rgba(28,28,30,.12); transform:translateY(-2px); }
+
+        /* ── FORM STYLES ── */
+        .f-title { font-size:23px; font-weight:800; letter-spacing:-.5px; margin-bottom:5px; }
+        .f-sub   { font-size:13px; color:var(--muted); margin-bottom:20px; font-weight:500; }
+
+        .field { display:flex; flex-direction:column; gap:4px; margin-bottom:11px; }
+        .frow  { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:11px; }
+        label  { font-size:10.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+
+        input, select {
+            padding:11px 14px; border-radius:10px;
+            border:1px solid rgba(255,255,255,.08);
+            background:var(--inp);
+            font-size:13.5px; font-weight:500; color:#fff;
+            outline:none; width:100%; font-family:inherit;
+            transition: border-color .25s, box-shadow .25s, background .25s;
+        }
+        select option { background:#2a2a2e; }
+        input::placeholder { color:rgba(153,153,153,.42); }
+        input:focus, select:focus {
+            background:rgba(0,0,0,.35);
+            border-color:var(--primary);
+            box-shadow:0 0 0 3px rgba(255,220,0,.12);
+        }
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+            -webkit-box-shadow:0 0 0 1000px rgba(0,0,0,.35) inset !important;
+            -webkit-text-fill-color:#fff !important; caret-color:#fff;
+        }
+
+        .pw { position:relative; display:flex; align-items:center; }
+        .pw input { padding-right:40px; }
+        .eye {
+            position:absolute; right:12px;
+            background:none; border:none; cursor:pointer; padding:0;
+            color:var(--muted); display:flex; align-items:center;
+            transition:color .2s; flex-shrink:0;
+        }
+        .eye:hover { color:var(--primary); }
+        .eye svg { width:16px; height:16px; pointer-events:none; }
+
+        .btn {
+            background:var(--primary); color:#1c1c1e;
+            padding:13px; border:none; border-radius:10px;
+            font-weight:800; font-size:14px; cursor:pointer;
+            font-family:inherit; width:100%; margin-top:6px;
+            box-shadow:0 4px 16px rgba(255,220,0,.22);
+            transition: background .2s, transform .2s, box-shadow .2s;
+        }
+        .btn:hover { background:var(--primary-d); transform:translateY(-1px); box-shadow:0 8px 24px rgba(255,220,0,.32); }
+
+        .forgot {
+            display:block; text-align:right;
+            font-size:12px; color:var(--primary); font-weight:600;
+            text-decoration:none; margin-top:-5px; margin-bottom:6px;
+        }
+        .forgot:hover { text-decoration:underline; }
+
+        .divider {
+            display:flex; align-items:center; gap:10px;
+            color:var(--muted); font-size:11px; margin:8px 0;
+        }
+        .divider::before,.divider::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.07); }
+
+        .roles { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:2px; }
+        .rc {
+            padding:10px; border-radius:10px;
+            border:1.5px solid rgba(255,255,255,.08);
+            background:rgba(0,0,0,.18); cursor:pointer; text-align:center;
+            transition: border-color .2s, background .2s;
+        }
+        .rc:hover { border-color:rgba(255,220,0,.35); }
+        .rc.sel   { border-color:var(--primary); background:rgba(255,220,0,.08); }
+        .ri { font-size:20px; margin-bottom:3px; }
+        .rn { font-size:12px; font-weight:700; }
+        .rd { font-size:10px; color:var(--muted); margin-top:1px; }
+
+        .help  { font-size:10px; color:var(--muted); margin-top:2px; }
+        .errtx { font-size:11px; color:#f87171; margin-top:2px; display:none; }
+        .errtx.on { display:block; }
+        .rlbl { font-size:10.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:7px; }
+
+        /* TOAST */
+        .toast {
+            position:fixed; top:84px; right:24px;
+            background:#22c55e; color:#fff;
+            padding:13px 20px; border-radius:12px;
+            font-weight:600; font-size:14px;
+            box-shadow:0 10px 30px rgba(0,0,0,.45);
+            transform:translateY(-130px); opacity:0;
+            transition: transform .4s var(--ease), opacity .4s;
+            z-index:500;
+        }
+        .toast.on { transform:translateY(0); opacity:1; }
+
+        /* MOBILE */
+        @media(max-width:680px){
+            .card { height:auto; min-height:520px; }
+            .form-wrap { width:100%; position:relative; height:auto; overflow:visible; transform: none !important; }
+            .panel { position:relative; inset:auto; padding:32px 22px; }
+            #pLogin,#pReg { transform:none !important; opacity:1 !important; pointer-events:all !important; overflow-y:visible; }
+            #pReg { display:none; }
+            .card.reg #pLogin { display:none; }
+            .card.reg #pReg { display:flex; }
+            .overlay { display:none; }
+            .mtabs { display:flex; gap:4px; background:rgba(0,0,0,.25); border-radius:10px; padding:4px; margin-bottom:20px; border:1px solid rgba(255,255,255,.06); }
+            .mtab { flex:1; padding:9px; border:none; background:transparent; font-weight:700; font-size:13px; color:var(--muted); border-radius:7px; cursor:pointer; font-family:inherit; transition:.2s; }
+            .mtab.a { background:var(--primary); color:#1c1c1e; }
+        }
+        @media(min-width:681px){ .mtabs { display:none; } }
+    </style>
+</head>
+<body>
+
+<div style="display:none"><input type="text" name="fu"><input type="password" name="fp"><input type="email" name="fe"></div>
+
+<nav>
+    <a href="index.html" class="brand">🛒 CampusMart</a>
+    <a href="index.html" class="back">← Back to Home</a>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<div class="wrap">
+  <div class="card" id="card">
+
+    <div class="form-wrap">
+      <div class="panel" id="pLogin">
+        <div class="mtabs">
+          <button class="mtab a" onclick="go('login')">Login</button>
+          <button class="mtab" onclick="go('reg')">Register</button>
+        </div>
+        <p class="f-title">Welcome Back</p>
+        <p class="f-sub">Sign in to your CampusMart account</p>
+        <form onsubmit="onLogin(event)" autocomplete="off">
+          <div class="field">
+            <label id="lid-lbl">Student ID Number</label>
+            <input type="text" id="lid" placeholder="e.g. 2024-12345" autocomplete="off" required>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <div class="pw">
+              <input type="password" id="lpw" placeholder="••••••••" autocomplete="new-password" required>
+              <button type="button" class="eye" onclick="togglePw('lpw',this)" tabindex="-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+          <a href="#" class="forgot" onclick="forgotPw(event)">Forgot Password?</a>
+          <button class="btn" type="submit">Sign In →</button>
+          <div class="divider">sign in as</div>
+          <div class="roles">
+            <div class="rc sel" id="lr-buy" onclick="setLRole('buyer',this)"><div class="ri">🎓</div><div class="rn">Student</div><div class="rd">Buy items</div></div>
+            <div class="rc"     id="lr-sel" onclick="setLRole('seller',this)"><div class="ri">🏪</div><div class="rn">Seller</div><div class="rd">Manage shop</div></div>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel" id="pReg">
+        <div class="mtabs">
+          <button class="mtab" onclick="go('login')">Login</button>
+          <button class="mtab a" onclick="go('reg')">Register</button>
+        </div>
+        <p class="f-title">Create Account</p>
+        <p class="f-sub">Join the CampusMart community today</p>
+        <form onsubmit="onReg(event)" autocomplete="off">
+          <div class="frow">
+            <div class="field"><label>First Name</label><input type="text" placeholder="Juan" autocomplete="off" required></div>
+            <div class="field"><label>Last Name</label><input type="text" placeholder="Dela Cruz" autocomplete="off" required></div>
+          </div>
+          <div class="field">
+            <label id="rid-lbl">Student ID Number</label>
+            <input type="text" id="rid" placeholder="e.g. 2024-12345" autocomplete="off" required>
+            <span class="help" id="rid-help">Your official university-issued ID number</span>
+          </div>
+          <div class="field">
+            <label>Email Address</label>
+            <input type="email" placeholder="juan@university.edu.ph" autocomplete="off" required>
+          </div>
+          <div class="field" id="dept-f">
+            <label>Department / College</label>
+            <select id="dept" required>
+              <option value="" disabled selected>Select your department</option>
+              <option>College of Information Technology</option>
+              <option>College of Engineering</option>
+              <option>College of Business</option>
+              <option>College of Education</option>
+              <option>College of Arts &amp; Sciences</option>
+              <option>College of Nursing</option>
+              <option>Graduate School</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Create Password</label>
+            <div class="pw">
+              <input type="password" id="rpw" placeholder="At least 8 characters" minlength="8" autocomplete="new-password" required>
+              <button type="button" class="eye" onclick="togglePw('rpw',this)" tabindex="-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Confirm Password</label>
+            <div class="pw">
+              <input type="password" id="rpwc" placeholder="Re-enter password" autocomplete="new-password" required>
+              <button type="button" class="eye" onclick="togglePw('rpwc',this)" tabindex="-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+            <span class="errtx" id="pwerr">Passwords do not match.</span>
+          </div>
+          <div style="margin-bottom:11px">
+            <div class="rlbl">Register as</div>
+            <div class="roles">
+              <div class="rc sel" id="rr-buy" onclick="setRRole('buyer')"><div class="ri">🎓</div><div class="rn">Student Buyer</div><div class="rd">Browse &amp; order</div></div>
+              <div class="rc"     id="rr-sel" onclick="setRRole('seller')"><div class="ri">🏪</div><div class="rn">Campus Seller</div><div class="rd">Open a shop</div></div>
+            </div>
+          </div>
+          <button class="btn" type="submit">Create Account →</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlay">
+      <svg class="ov-svg" viewBox="0 0 400 560" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ovGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#FFDC00"/>
+            <stop offset="50%"  stop-color="#f0c000"/>
+            <stop offset="100%" stop-color="#c98b00"/>
+          </linearGradient>
+        </defs>
+        <path id="ovPath"
+          d="M 70,0
+             C 70,0 400,0 400,0
+             L 400,560
+             C 400,560 70,560 70,560
+             C 70,560 -30,420 60,280
+             C 140,140 -30,80 70,0
+             Z"
+          fill="url(#ovGrad)"
+        />
+      </svg>
+
+      <div class="ov-face lf">
+        <div class="ov-icon">👋</div>
+        <div class="ov-title">Hello, Friend!</div>
+        <div class="ov-sub">New here? Register with your details to enjoy all of CampusMart's features.</div>
+        <button class="ov-btn" onclick="go('reg')">SIGN UP</button>
+      </div>
+
+      <div class="ov-face rf">
+        <div class="ov-icon">🎉</div>
+        <div class="ov-title">Welcome Back!</div>
+        <div class="ov-sub">Already have an account? Sign in and continue your CampusMart experience.</div>
+        <button class="ov-btn" onclick="go('login')">SIGN IN</button>
+      </div>
+    </div>
+
+  </div></div>
+
+<script>
+  const EO = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+  const EC = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.477 10.477A3 3 0 0113.5 13.5M6.357 6.357A9.965 9.965 0 002.458 12c1.274 4.057 5.065 7 9.542 7a9.966 9.966 0 005.643-1.745M9.878 9.878A3 3 0 0114.12 14.12M21.542 12c-1.274-4.057-5.065-7-9.542-7a9.96 9.96 0 00-3.17.516"/></svg>`;
+
+  let mode='login', lRole='buyer', rRole='buyer';
+
+  const PATH_RIGHT = "M 70,0 C 70,0 400,0 400,0 L 400,560 C 400,560 70,560 70,560 C 70,560 -30,420 60,280 C 140,140 -30,80 70,0 Z";
+  const PATH_LEFT  = "M 0,0 C 0,0 330,0 330,0 C 330,0 430,80 350,280 C 270,480 430,560 330,560 L 0,560 Z";
+
+  const ovPath = document.getElementById('ovPath');
+
+  function go(m) {
+    if (m === mode) return;
+    mode = m;
+    const card = document.getElementById('card');
+    if (m === 'reg') {
+      card.classList.add('reg');
+      setTimeout(() => {
+        ovPath.style.transition = `d 800ms cubic-bezier(0.76,0,0.24,1)`;
+        ovPath.setAttribute('d', PATH_LEFT);
+      }, 50);
+      document.getElementById('pReg').scrollTop = 0;
+    } else {
+      card.classList.remove('reg');
+      setTimeout(() => {
+        ovPath.style.transition = `d 800ms cubic-bezier(0.76,0,0.24,1)`;
+        ovPath.setAttribute('d', PATH_RIGHT);
+      }, 50);
+    }
+  }
+
+  function togglePw(id,btn){
+    const el=document.getElementById(id);
+    const show=el.type==='password';
+    el.type=show?'text':'password';
+    btn.innerHTML=show?EC:EO;
+  }
+
+  function setLRole(r,el){
+    lRole=r;
+    ['lr-buy','lr-sel'].forEach(id=>document.getElementById(id).classList.remove('sel'));
+    el.classList.add('sel');
+    const lbl=document.getElementById('lid-lbl'), inp=document.getElementById('lid');
+    if(r==='seller'){lbl.textContent='Store ID';inp.placeholder='e.g. STORE-2024-001';}
+    else{lbl.textContent='Student ID Number';inp.placeholder='e.g. 2024-12345';}
+    inp.value='';
+  }
+
+  function setRRole(r){
+    rRole=r;
+    document.getElementById('rr-buy').classList.toggle('sel',r==='buyer');
+    document.getElementById('rr-sel').classList.toggle('sel',r==='seller');
+    const lbl=document.getElementById('rid-lbl'),inp=document.getElementById('rid'),
+          hlp=document.getElementById('rid-help'),df=document.getElementById('dept-f'),ds=document.getElementById('dept');
+    if(r==='seller'){
+      lbl.textContent='Store ID';inp.placeholder='e.g. STORE-2024-001';
+      hlp.textContent='Your registered campus store ID number';
+      df.style.display='none';ds.removeAttribute('required');
+    } else {
+      lbl.textContent='Student ID Number';inp.placeholder='e.g. 2024-12345';
+      hlp.textContent='Your official university-issued ID number';
+      df.style.display='flex';ds.setAttribute('required','required');
+    }
+  }
+
+  function toast(msg,bg='#22c55e'){
+    const t=document.getElementById('toast');
+    t.textContent=msg; t.style.background=bg;
+    t.classList.add('on');
+    setTimeout(()=>t.classList.remove('on'),3200);
+  }
+
+  function forgotPw(e){
+    e.preventDefault();
+    toast('📧 Password reset link sent to your email.','#3b82f6');
+  }
+
+  function onLogin(e){
+    e.preventDefault();
+    const btn=e.target.querySelector('.btn');
+    btn.textContent='Signing in…';btn.disabled=true;
+    setTimeout(()=>{
+      btn.textContent='Sign In →';btn.disabled=false;
+      toast('✨ Login successful! Redirecting…');
+      setTimeout(()=>{ window.location.href=lRole==='seller'?'seller.html':'store.html'; },1200);
+    },1000);
+  }
+
+  function onReg(e){
+    e.preventDefault();
+    const pw=document.getElementById('rpw').value;
+    const pwc=document.getElementById('rpwc').value;
+    const err=document.getElementById('pwerr');
+    if(pw!==pwc){err.classList.add('on');document.getElementById('rpwc').focus();return;}
+    err.classList.remove('on');
+    const btn=e.target.querySelector('.btn');
+    btn.textContent='Creating account…';btn.disabled=true;
+    setTimeout(()=>{
+      btn.textContent='Create Account →';btn.disabled=false;
+      toast(rRole==='seller'?'✅ Account created! Pending admin approval.':'✅ Registration successful! Please log in.',
+            rRole==='seller'?'#3b82f6':'#22c55e');
+      e.target.reset();setRRole('buyer');
+      setTimeout(()=>go('login'),2000);
+    },1200);
+  }
+
+  window.addEventListener('load',()=>{
+    document.querySelectorAll('input').forEach(el=>{ el.value=''; });
+  });
+</script>
+</body>
+</html>
