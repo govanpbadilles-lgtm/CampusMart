@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CampusMart</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/CampusMart.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg cm-navbar sticky-top">
+            <div class="container-xl">
+
+                <a class="navbar-brand cm-brand"
+                       asp-area=""
+                       asp-controller="Home"
+                       asp-action="HomeIndex">
+                    🛒 CampusMart
+                </a>
+
+                <button class="navbar-toggler cm-toggler border-0"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    <i class="bi bi-list fs-3 text-white"></i>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav mx-auto gap-lg-1 mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link cm-nav-link"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="HomeIndex">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link cm-nav-link" href="#categories">Categories</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link cm-nav-link"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="About">About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link cm-nav-link"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="Contact">Contact</a>
+                        </li>
+                    </ul>
+
+                    <div class="d-flex gap-2 mt-3 mt-lg-0">
+                        <a asp-area=""
+                           asp-controller="Account"
+                           asp-action="Login"
+                           class="btn btn-outline-secondary">Login</a>
+
+                        <a asp-area=""
+                           asp-controller="Account"
+                           asp-action="Register"
+                           class="btn btn-outline-warning">Register</a>
+                    </div>
+                </div>
+
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="cm-footer">
+        <div class="container-xl">
+            <div class="row align-items-center py-4 g-3">
+                <div class="col-md-4">
+                    <a class="navbar-brand cm-brand"
+                           asp-area=""
+                           asp-controller="Home"
+                           asp-action="HomeIndex"
+                           style="font-size:18px;">
+                        🛒 CampusMart
+                    </a>
+                </div>
+                <div class="col-md-4 text-center">
+                    <p class="text-white small mb-0">&copy; 2026 CampusMart. Built by TEAM <strong><i>(One Team, One Goal)</i></strong>.</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <span style="color:var(--primary); font-weight:600;">Premium University Platform</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

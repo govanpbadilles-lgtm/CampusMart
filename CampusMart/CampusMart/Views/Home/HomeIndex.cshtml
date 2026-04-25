@@ -1,0 +1,190 @@
+﻿
+@{
+    ViewData["Title"] = "HomeIndex";
+}
+
+
+<section class="cm-hero">
+    <div class="container-xl">
+        <div class="row align-items-center g-5">
+
+            <!-- Left: Copy -->
+            <div class="col-lg-6 animate-fade-in">
+
+                <div class="cm-pill mb-4">
+                    🎓 Exclusive for University Students &amp; Faculty
+                </div>
+
+                <span class="cm-text-accent animate-fade-in delay-1"
+                      style="display:block; margin-bottom:8px;">
+                    Premium Campus Experience
+                </span>
+
+                <h1 class="cm-hero-title animate-fade-in delay-2">
+                    Everything You Need,<br />On Campus.
+                </h1>
+
+                <p class="cm-hero-sub animate-fade-in delay-3">
+                    Shop uniforms, meals, snacks, school supplies, and more — all from
+                    verified campus sellers. Order ahead, skip the line, pick up in minutes.
+                </p>
+
+                <!-- CTA — Tag Helper -->
+                <div class="d-flex flex-wrap gap-3 mb-5 animate-fade-in delay-3">
+                    <a asp-area=""
+                       asp-controller="Account"
+                       asp-action="Login"
+                       class="btn cm-btn-primary">Start Shopping</a>
+                </div>
+
+                <!-- Stats -->
+                <div class="cm-stats-row animate-fade-in delay-3">
+                    <div class="cm-stat">
+                        <div class="cm-stat-num">500+</div>
+                        <div class="cm-stat-label">Products Listed</div>
+                    </div>
+                    <div class="cm-stat-divider"></div>
+                    <div class="cm-stat">
+                        <div class="cm-stat-num">80+</div>
+                        <div class="cm-stat-label">Verified Sellers</div>
+                    </div>
+                    <div class="cm-stat-divider"></div>
+                    <div class="cm-stat">
+                        <div class="cm-stat-num">3.2k+</div>
+                        <div class="cm-stat-label">Orders Placed</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Mart.gif -->
+            <div class="col-lg-6 d-none d-lg-flex justify-content-center
+                        align-items-center animate-fade-in delay-2 position-relative">
+                <div class="cm-glow-orb"></div>
+                <img src="~/images/Mart.gif"
+                     alt="CampusMart"
+                     class="cm-hero-img animate-float" />
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+
+<div class="cm-features-strip">
+    <div class="container-xl">
+        <div class="row justify-content-center g-4">
+            <div class="col-auto">
+                <div class="cm-chip">
+                    <span class="cm-chip-icon">⚡</span>
+                    <span><strong>Fast Pickup</strong> — Ready in 15 mins</span>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="cm-chip">
+                    <span class="cm-chip-icon">🔒</span>
+                    <span><strong>Secure</strong> — Verified students only</span>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="cm-chip">
+                    <span class="cm-chip-icon">📱</span>
+                    <span><strong>GCash &amp; Cash</strong> — Your choice</span>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="cm-chip">
+                    <span class="cm-chip-icon">🏪</span>
+                    <span><strong>Multi-Seller</strong> — One checkout</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<section class="cm-section" id="categories">
+    <div class="container-xl">
+        <div class="text-center mb-5">
+            <div class="cm-section-tag">Browse by Category</div>
+            <h2 class="cm-section-title mt-2 mb-3">What are you looking for?</h2>
+            <p class="cm-text-muted">From daily meals to official uniforms — all in one place.</p>
+        </div>
+
+        <div class="row g-4">
+            @{
+                var categories = new[]
+                {
+                    new { Icon = "👕", Name = "Uniforms", Count = 24 },
+                    new { Icon = "🍱", Name = "Meals",    Count = 38 },
+                    new { Icon = "🧋", Name = "Drinks",   Count = 29 },
+                    new { Icon = "✏️", Name = "Supplies", Count = 65 },
+                    new { Icon = "📚", Name = "Books",    Count = 47 },
+                    new { Icon = "🎒", Name = "Merch",    Count = 18 },
+                };
+            }
+
+            @foreach (var cat in categories)
+            {
+                <div class="col-6 col-sm-4 col-lg-2">
+                    <a asp-area=""
+                       asp-controller="Products"
+                       asp-action="Index"
+                       asp-route-category="@cat.Name"
+                       class="cm-cat-card glass-card h-100">
+                        <div class="cm-cat-icon">@cat.Icon</div>
+                        <div class="cm-cat-name">@cat.Name</div>
+                        <div class="cm-cat-count">@cat.Count items</div>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+
+
+<section class="cm-section" style="padding-top:0">
+    <div class="container-xl">
+        <div class="text-center mb-5">
+            <div class="cm-section-tag">How It Works</div>
+            <h2 class="cm-section-title mt-2">Order in 3 simple steps</h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="glass-card cm-how-card h-100">
+                    <div class="cm-how-num">1</div>
+                    <h5>Browse &amp; Add to Cart</h5>
+                    <p class="cm-text-muted mb-0">
+                        Search or filter by category. Add items from multiple campus
+                        sellers in one session effortlessly.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card cm-how-card h-100">
+                    <div class="cm-how-num">2</div>
+                    <h5>Choose Payment</h5>
+                    <p class="cm-text-muted mb-0">
+                        Pay via GCash, bank transfer, or cash on pickup. Upload proof
+                        for digital payments instantly.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card cm-how-card h-100">
+                    <div class="cm-how-num">3</div>
+                    <h5>Pick Up On Campus</h5>
+                    <p class="cm-text-muted mb-0">
+                        Get notified when your order is ready. Collect from the
+                        seller's campus location — no waiting.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
