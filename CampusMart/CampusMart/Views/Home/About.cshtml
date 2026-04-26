@@ -1,7 +1,37 @@
-﻿
 @{
     ViewData["Title"] = "About";
 }
 
-<h1>About</h1>
+<section class="hero animate-fade-in"> 
+    <div class="tag">About CampusMart</div> 
+    <h1>Built for Students,<br>By Students</h1> 
+    <p>Experience the premium standard of campus marketplaces. Designed to make ordering uniforms, meals, supplies, and books an incredibly fast and delightful experience.</p> 
+</section>
 
+<section class="section" style="padding-top:0"> 
+    <div class="section-head animate-fade-in delay-1"><h2>Our Mission</h2><p>Connecting campus communities through a premium commerce experience</p></div> 
+    <div class="grid-3 animate-fade-in delay-2"> 
+        <div class="glass-card value-card"><div class="vc-icon">🎓</div><div class="vc-title">Student-First Design</div><p class="vc-text">Every interaction was meticulously crafted around real student needs—skip lines, order ahead, and manage everything seamlessly from your phone.</p></div> 
+        <div class="glass-card value-card"><div class="vc-icon">🔒</div><div class="vc-title">Highly Secure</div><p class="vc-text">Only registered students and faculty with verified university credentials can access the platform, ensuring a safe and premium environment.</p></div> 
+        <div class="glass-card value-card"><div class="vc-icon">🌱</div><div class="vc-title">Empowering Entrepreneurs</div><p class="vc-text">We help student entrepreneurs grow their small businesses within the campus community with zero platform fees and premium visibility.</p></div> 
+        <div class="glass-card value-card"><div class="vc-icon">⚡</div><div class="vc-title">Lightning Fast</div><p class="vc-text">Real-time dynamic updates, push notifications, and a streamlined one-click checkout process mean zero friction and pure convenience.</p></div> 
+        <div class="glass-card value-card"><div class="vc-icon">🤝</div><div class="vc-title">Community-Driven</div><p class="vc-text">Features are continuously refined based on student feedback. Rate sellers, suggest features, and help shape the future of campus commerce.</p></div> 
+        <div class="glass-card value-card"><div class="vc-icon">📱</div><div class="vc-title">Mobile-First</div><p class="vc-text">Crafted primarily for mobile. Browse, order, and track everything effortlessly on the go—with stunning visuals and fluid animations.</p></div> 
+    </div> 
+</section>
+
+<section class="section" style="padding-top:0"> 
+    <div class="section-head"><h2>Meet the Creators</h2><p>Students building for students</p></div> 
+    <div class="team-grid"> 
+        <div class="glass-card team-card"><div class="team-av">💻</div><div class="team-name">Dev Lead</div><div class="team-role">Full-Stack Architecture</div></div> 
+        <div class="glass-card team-card"><div class="team-av">✨</div><div class="team-name">UX Designer</div><div class="team-role">Visuals & Prototyping</div></div> 
+        <div class="glass-card team-card"><div class="team-av">🗃️</div><div class="team-name">Backend Dev</div><div class="team-role">Database & APIs</div></div> 
+        <div class="glass-card team-card"><div class="team-av">🚀</div><div class="team-name">Product Manager</div><div class="team-role">Strategy & QA</div></div> 
+    </div> 
+</section>
+
+<div class="cta"> 
+    <h2>Ready to experience CampusMart?</h2> 
+    <p>Join thousands of students already shopping smarter on campus.</p> 
+    <a asp-controller="Account" asp-action="Login" class="btn-primary" style="padding:14px 36px; font-size:16px; display:inline-block; text-decoration:none;">Get Started Now →</a> 
+</div>

@@ -1,12 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace CampusMart.Models.ViewModels.Account
 {
     public class LoginViewModel
     {
         [Required]
-        [EmailAddress]
-        public string Email { get; set; }
+        [Display(Name = "Student ID Number")]
+        public string StudentId { get; set; }
 
         [Required]
         [DataType(DataType.Password)]

@@ -1,5 +1,397 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+@model CampusMart.Models.ViewModels.Account.LoginViewModel
+
 @{
+    ViewData["Title"] = "CampusMart | Login";
+    Layout = null;
 }
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f11 0%, #1a1a1e 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar-global {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: rgba(20, 20, 22, 0.8);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 800;
+            text-decoration: none;
+            color: #FFE600;
+            transition: 0.3s;
+        }
+
+        .navbar-brand:hover {
+            text-shadow: 0 0 10px #FFE600;
+        }
+
+        .back-link {
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .back-link:hover {
+            color: #FFE600;
+        }
+
+        .auth-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 16px;
+            min-height: calc(100vh - 70px);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 450px;
+            background: rgba(20, 20, 22, 0.6);
+            backdrop-filter: blur(24px);
+            border-radius: 32px;
+            padding: 48px 32px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .auth-subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 32px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .input-glass {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .input-glass:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.3);
+            outline: none;
+            box-shadow: 0 0 15px rgba(255, 230, 0, 0.25);
+        }
+
+        .input-glass::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .password-group {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.6);
+            transition: color 0.2s;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-password:hover {
+            color: #FFE600;
+        }
+
+        .toggle-password svg {
+            width: 18px;
+            height: 18px;
+            pointer-events: none;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .forgot-password a {
+            font-size: 13px;
+            color: #FFE600;
+            text-decoration: none;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .forgot-password a:hover {
+            text-shadow: 0 0 10px #FFE600;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #FFE600 0%, #FFD700 100%);
+            color: #0f0f11;
+            border: none;
+            padding: 13px 24px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(255, 230, 0, 0.3);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-link {
+            text-align: center;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .auth-link a {
+            color: #FFE600;
+            text-decoration: none;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .auth-link a:hover {
+            text-shadow: 0 0 10px #FFE600;
+        }
+
+        .validation-error {
+            font-size: 12px;
+            color: #ef4444;
+            margin-top: 6px;
+            display: block;
+            font-weight: 600;
+        }
+
+        .field-validation-error {
+            display: block !important;
+        }
+
+        .toast-global {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 10px;
+            background: rgba(34, 197, 94, 0.95);
+            color: white;
+            font-weight: 600;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast-global.show {
+            display: block;
+        }
+
+        @@keyframes slideIn {
+            from {
+                transform: translateX(450px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .auth-card {
+                padding: 36px 24px;
+                border-radius: 24px;
+            }
+
+            .auth-title {
+                font-size: 24px;
+            }
+
+            .auth-container {
+                padding: 24px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar-global">
+        <a asp-controller="Home" asp-action="HomeIndex" class="navbar-brand">🛒 CampusMart</a>
+        <a asp-controller="Home" asp-action="HomeIndex" class="back-link">← Back to Home</a>
+    </nav>
+
+    <div class="toast-global" id="toast"></div>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1 class="auth-title">Welcome Back</h1>
+            <p class="auth-subtitle">Sign in to your premium CampusMart portal</p>
+
+            <form asp-action="Login" asp-controller="Account" method="post" autocomplete="off">
+                <div class="form-group">
+                    <label asp-for="StudentId">Student ID Number</label>
+                    <input asp-for="StudentId" class="input-glass" placeholder="e.g. 2024-12345" autocomplete="off" required>
+                    <span asp-validation-for="StudentId" class="validation-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password">Password</label>
+                    <div class="password-group">
+                        <input asp-for="Password" class="input-glass" placeholder="••••••••" autocomplete="off" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('Password', this)" tabindex="-1" title="Toggle password visibility">
+                            <svg id="eyeIcon-Password" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="validation-error"></span>
+                </div>
+
+                <div class="forgot-password">
+                    <a asp-controller="Account" asp-action="ForgotPassword">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn-submit">Sign In →</button>
+
+                <div class="auth-link">
+                    Don't have an account? <a asp-action="Register" asp-controller="Account">Sign up here</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const eyeOpenSvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+        const eyeClosedSvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18m0 0L3 3m18 0l-18 18M10.477 10.477A3 3 0 0113.5 13.5M6.357 6.357A9.965 9.965 0 012.458 12c1.274 4.057 5.065 7 9.542 7a9.966 9.966 0 005.643-1.745"/></svg>`;
+
+        function togglePassword(fieldId, button) {
+            const input = document.querySelector(`input[name="${fieldId}"]`);
+            const icon = button.querySelector('svg');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.outerHTML = eyeClosedSvg;
+            } else {
+                input.type = 'password';
+                icon.outerHTML = eyeOpenSvg;
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = type === 'success' ? '✅' : '❌';
+            toast.innerHTML = `${icon} ${message}`;
+            
+            if (type === 'error') {
+                toast.style.background = 'rgba(239, 68, 68, 0.95)';
+            } else {
+                toast.style.background = 'rgba(34, 197, 94, 0.95)';
+            }
+            
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
+
+        // Form submission handling (you can integrate with actual backend)
+        document.querySelector('form').addEventListener('submit', function(e) {
+            // Uncomment for demo toast
+            // showToast('Logging in...', 'success');
+        });
+
+        // Clear input values on page load
+        window.addEventListener('load', () => {
+            document.querySelectorAll('input[type="text"], input[type="password"]').forEach(el => {
+                el.value = '';
+            });
+        });
+    </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+</body>
+</html>

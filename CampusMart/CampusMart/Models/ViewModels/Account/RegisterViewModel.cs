@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace CampusMart.Models.ViewModels.Account
 {
@@ -6,13 +6,25 @@ namespace CampusMart.Models.ViewModels.Account
     {
 
         [Required]
-        [StringLength(100)]
-        [Display(Name = "Full Name")]
-        public string FullName { get; set; }
+        [StringLength(50)]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; }
+
+        [Required]
+        [StringLength(50)]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; }
+
+        [Required]
+        [Display(Name = "Student ID Number")]
+        public string StudentId { get; set; }
 
         [Required]
         [EmailAddress]
         public string Email { get; set; }
+
+        [Required]
+        public string Department { get; set; }
 
         [Required]
         [StringLength(100, MinimumLength = 6)]
