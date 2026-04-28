@@ -1,33 +1,113 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using CampusMart.Models.ViewModels.Account;
+using CampusMart.Models.Entities;
 
 namespace CampusMart.Controllers
 {
     public class AccountController : Controller
     {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+
+        public AccountController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+        }
+
         [HttpGet]
         public IActionResult Login()
         {
+            if (User.Identity.IsAuthenticated)
+                return RedirectToAction("Index", "HomeUser");
+
             return View(new LoginViewModel());
         }
 
         [HttpPost]
-        public IActionResult Login(LoginViewModel loginModel)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
-            // TODO: Implement login logic
-            return RedirectToAction("HomeIndex", "Home");
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Please provide valid credentials.";
+                return View(model);
+            }
+
+            // Find user by StudentId (stored as UserName)
+            var user = await _userManager.FindByNameAsync(model.StudentId);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "Invalid Student ID or Password.";
+                ModelState.AddModelError("", "Invalid Student ID or Password.");
+                return View(model);
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "Successfully logged in. Welcome back!";
+                return RedirectToAction("Index", "HomeUser");
+            }
+
+            TempData["ErrorMessage"] = "Invalid Student ID or Password.";
+            ModelState.AddModelError("", "Invalid Student ID or Password.");
+            return View(model);
         }
 
         [HttpGet]
         public IActionResult Register()
         {
+            if (User.Identity.IsAuthenticated)
+                return RedirectToAction("Index", "HomeUser");
+
             return View(new RegisterViewModel());
         }
 
         [HttpPost]
-        public IActionResult Register(RegisterViewModel registerModel)
+        public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            // TODO: Implement register logic
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Please fill in all required fields correctly.";
+                return View(model);
+            }
+
+            var user = new ApplicationUser
+            {
+                UserName = model.StudentId,
+                Email = model.Email,
+                FullName = $"{model.FirstName} {model.LastName}",
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                StudentId = model.StudentId,
+                Department = model.Department,
+                DateTime = DateTime.UtcNow
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "Account successfully created! Please login to continue.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            TempData["ErrorMessage"] = "Registration failed. Please check the errors.";
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            TempData["SuccessMessage"] = "You have been logged out successfully.";
             return RedirectToAction("HomeIndex", "Home");
         }
     }

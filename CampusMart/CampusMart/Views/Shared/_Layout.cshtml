@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -40,7 +40,7 @@
                                asp-action="HomeIndex">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link cm-nav-link" href="#categories">Categories</a>
+                            <a class="nav-link cm-nav-link" href="/#categories">Categories</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link cm-nav-link"
@@ -54,19 +54,23 @@
                                asp-controller="Home"
                                asp-action="Contact">Contact</a>
                         </li>
+                    </ul>   
+                    
+                    <ul class="navbar-nav ms-auto gap-2">
+                        <li class="nav-item">
+                            <a asp-area=""
+                               asp-controller="Account"
+                               asp-action="Login"
+                               class="btn btn-outline-secondary">Login</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a asp-area=""
+                               asp-controller="Account"
+                               asp-action="Register"
+                               class="btn btn-outline-warning">Register</a>
+                        </li> 
                     </ul>
-
-                    <div class="d-flex gap-2 mt-3 mt-lg-0">
-                        <a asp-area=""
-                           asp-controller="Account"
-                           asp-action="Login"
-                           class="btn btn-outline-secondary">Login</a>
-
-                        <a asp-area=""
-                           asp-controller="Account"
-                           asp-action="Register"
-                           class="btn btn-outline-warning">Register</a>
-                    </div>
                 </div>
 
             </div>
@@ -102,6 +106,45 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function showToast(message, isError = false) {
+            let toast = document.getElementById('globalToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'globalToast';
+                toast.className = 'toast-notify';
+                document.body.appendChild(toast);
+            }
+            if (isError) {
+                toast.classList.add('toast-error');
+                toast.textContent = '✖  ' + message;
+            } else {
+                toast.classList.remove('toast-error');
+                toast.textContent = '✓  ' + message;
+            }
+            // Trigger reflow
+            void toast.offsetWidth;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+            document.addEventListener("DOMContentLoaded", function() {
+                showToast('@Html.Raw(TempData["SuccessMessage"])', false);
+            });
+            </text>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+            document.addEventListener("DOMContentLoaded", function() {
+                showToast('@Html.Raw(TempData["ErrorMessage"])', true);
+            });
+            </text>
+        }
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

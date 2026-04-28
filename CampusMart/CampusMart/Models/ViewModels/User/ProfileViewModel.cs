@@ -1,6 +1,21 @@
-﻿namespace CampusMart.Models.ViewModels.User
+using System.ComponentModel.DataAnnotations;
+
+namespace CampusMart.Models.ViewModels.User
 {
     public class ProfileViewModel
     {
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? StudentId { get; set; }
+        public string? Department { get; set; }
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        public string? Address { get; set; }
+
+        [StringLength(200)]
+        public string? Bio { get; set; }
+        public string? AvatarUrl { get; set; }
+        public string? YearLevel { get; set; }
+        public string? Section { get; set; }
     }
 }

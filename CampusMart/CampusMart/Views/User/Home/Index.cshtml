@@ -1,0 +1,135 @@
+@{
+    ViewData["Title"] = "Campus Marketplace";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<div class="dashboard-container">
+    <div class="marketplace-header animate-fade-in">
+        <div class="header-left">
+            <h2 class="section-title">Campus Marketplace</h2>
+            <p class="header-desc">Browse exclusive student-run stalls organized by building floors. Each floor features curated vendors with high-quality academics and essentials.</p>
+        </div>
+        <div class="header-right">
+            <div class="building-status-label">Building Status</div>
+            <div class="building-name">Main Academic Hall</div>
+        </div>
+    </div>
+
+    <div class="floor-tabs animate-fade-in delay-1">
+        <div class="floor-tab active"><span class="floor-label">Floor</span><span class="floor-num">5</span></div>
+        <div class="floor-tab"><span class="floor-label">Floor</span><span class="floor-num">4</span></div>
+        <div class="floor-tab"><span class="floor-label">Floor</span><span class="floor-num">3</span></div>
+        <div class="floor-tab"><span class="floor-label">Floor</span><span class="floor-num">2</span></div>
+        <div class="floor-tab"><span class="floor-label">Floor</span><span class="floor-num">1</span></div>
+    </div>
+
+    <div class="map-card animate-fade-in delay-1">
+        <div style="position:absolute;inset:0;background:linear-gradient(90deg,#1f2022 0%,#2a2c30 50%,#1f2022 100%);"></div>
+        <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,.03) 40px,rgba(255,255,255,.03) 41px),repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,255,255,.03) 40px,rgba(255,255,255,.03) 41px);"></div>
+        <div class="map-content">
+            <h2 class="map-title">5th Floor Map</h2>
+            <p class="map-sub">Current Occupancy: 6 of 8 stalls</p>
+            <div class="map-badges">
+                <span class="map-badge yellow">Lounge Area Open</span>
+                <span class="map-badge green">2 Vacancies</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="stalls-header animate-fade-in delay-2">
+        <h3 class="stalls-title">Active Stalls - Floor 5</h3>
+        <div class="view-toggles">
+            <button class="view-btn active">⊞</button>
+            <button class="view-btn">≡</button>
+        </div>
+    </div>
+
+    <div class="stalls-grid animate-fade-in delay-2">
+        <div class="stall-card">
+            <div class="stall-img-wrapper">
+                <span class="stall-badge">STALL 1/8</span>
+                <div style="position:absolute;inset:0;background:radial-gradient(circle at center,#1a2a3a 0%,#0a101a 100%);display:flex;align-items:center;justify-content:center;">
+                    <div style="width:40px;height:40px;border:2px solid #3b82f6;border-radius:50%;box-shadow:0 0 20px #3b82f6;"></div>
+                </div>
+            </div>
+            <div class="stall-content">
+                <div class="stall-header-row"><h4 class="stall-name">The Tech Hub</h4><span class="stall-price">$45+</span></div>
+                <p class="stall-desc">Premium gadgets and high-speed rental accessories for modern students.</p>
+                <div class="stall-footer">
+                    <div class="stall-rating"><span class="star-icon">★</span> 4.9 <span>(120)</span></div>
+                    <button class="btn-enter">Enter Stall</button>
+                </div>
+            </div>
+        </div>
+        <div class="stall-card">
+            <div class="stall-img-wrapper">
+                <span class="stall-badge">STALL 2/8</span>
+                <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2228&auto=format&fit=crop" alt="Archive Books">
+            </div>
+            <div class="stall-content">
+                <div class="stall-header-row"><h4 class="stall-name">Archive Books</h4><span class="stall-price">$15+</span></div>
+                <p class="stall-desc">Rare editions and semester textbooks at discounted rates.</p>
+                <div class="stall-footer">
+                    <div class="stall-rating"><span class="star-icon">★</span> 4.8 <span>(85)</span></div>
+                    <button class="btn-enter">Enter Stall</button>
+                </div>
+            </div>
+        </div>
+        <div class="stall-card">
+            <div class="stall-img-wrapper">
+                <span class="stall-badge">STALL 3/8</span>
+                <img src="https://images.unsplash.com/photo-1559496417-e7f25cb247f3?q=80&w=2000&auto=format&fit=crop" alt="Caffeine Lab">
+            </div>
+            <div class="stall-content">
+                <div class="stall-header-row"><h4 class="stall-name">Caffeine Lab</h4><span class="stall-price">$5+</span></div>
+                <p class="stall-desc">Artisan brews and snack packs for late-night study sessions.</p>
+                <div class="stall-footer">
+                    <div class="stall-rating"><span class="star-icon">★</span> 5.0 <span>(210)</span></div>
+                    <button class="btn-enter">Enter Stall</button>
+                </div>
+            </div>
+        </div>
+        <div class="stall-card">
+            <div class="stall-img-wrapper">
+                <span class="stall-badge">STALL 4/8</span>
+                <img src="https://images.unsplash.com/photo-1585036156171-384164a8c675?q=80&w=2000&auto=format&fit=crop" alt="Stationery Elite">
+            </div>
+            <div class="stall-content">
+                <div class="stall-header-row"><h4 class="stall-name">Stationery Elite</h4><span class="stall-price">$12+</span></div>
+                <p class="stall-desc">Minimalist planners and premium writing instruments.</p>
+                <div class="stall-footer">
+                    <div class="stall-rating"><span class="star-icon">★</span> 4.7 <span>(42)</span></div>
+                    <button class="btn-enter">Enter Stall</button>
+                </div>
+            </div>
+        </div>
+        <div class="stall-card">
+            <div class="stall-img-wrapper">
+                <span class="stall-badge">STALL 5/8</span>
+                <img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=2000&auto=format&fit=crop" alt="Merch Corner">
+            </div>
+            <div class="stall-content">
+                <div class="stall-header-row"><h4 class="stall-name">Merch Corner</h4><span class="stall-price">$25+</span></div>
+                <p class="stall-desc">Custom campus apparel and exclusive drop collections.</p>
+                <div class="stall-footer">
+                    <div class="stall-rating"><span class="star-icon">★</span> 4.6 <span>(31)</span></div>
+                    <button class="btn-enter">Enter Stall</button>
+                </div>
+            </div>
+        </div>
+        <div class="stall-card">
+            <div class="stall-img-wrapper">
+                <span class="stall-badge">STALL 6/8</span>
+                <img src="https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?q=80&w=2000&auto=format&fit=crop" alt="Artisan Desk">
+            </div>
+            <div class="stall-content">
+                <div class="stall-header-row"><h4 class="stall-name">Artisan Desk</h4><span class="stall-price">$80+</span></div>
+                <p class="stall-desc">Bespoke wooden furniture and ergonomic setups.</p>
+                <div class="stall-footer">
+                    <div class="stall-rating"><span class="star-icon">★</span> 5.0 <span>(15)</span></div>
+                    <button class="btn-enter">Enter Stall</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

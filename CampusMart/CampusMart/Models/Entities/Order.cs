@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace CampusMart.Models.Entities
 {
@@ -19,6 +19,8 @@ namespace CampusMart.Models.Entities
 
         public string ShippingAddress { get; set; }
         public string PaymentMethod { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
     public ICollection<OrderItem> OrderItems { get; set; }
     }
