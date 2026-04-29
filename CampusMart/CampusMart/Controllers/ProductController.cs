@@ -6,7 +6,7 @@ using CampusMart.Data;
 using CampusMart.Models.Entities;
 using CampusMart.Models.ViewModels.User;
 
-namespace CampusMart.Controllers.User
+namespace CampusMart.Controllers
 {
     [Authorize]
     public class ProductController : Controller

@@ -10,18 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.Configure<Microsoft.AspNetCore.Mvc.Razor.RazorViewEngineOptions>(options =>
-{
-    options.ViewLocationFormats.Add("/Views/User/{1}/{0}.cshtml");
-    options.ViewLocationFormats.Add("/Views/Admin/{1}/{0}.cshtml");
-
-    // Important: Admin controllers are inside an MVC Area ("Admin").
-    // By default, ASP.NET searches /Areas/Admin/Views/... which doesn't exist in this project.
-    // Add these locations so it can find your existing /Views/Admin/... folder.
-    options.AreaViewLocationFormats.Add("/Views/Admin/{1}/{0}.cshtml");
-    options.AreaViewLocationFormats.Add("/Views/User/{1}/{0}.cshtml");
-});
-
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -70,35 +58,39 @@ if (app.Environment.IsDevelopment())
         // You requested:
         // admin id: 23769862
         // admin pass: Marecigan@0912
-        var adminId = "23769862";
-        var adminPass = "Marecigan@0912";
-        var adminFullName = "Admin";
-
-        var adminUser = await userManager.FindByNameAsync(adminId);
-        if (adminUser == null)
+        var adminCredentials = new[] 
         {
-            adminUser = new ApplicationUser
-            {
-                UserName = adminId, // your app stores StudentId as UserName
-                Email = $"{adminId}@campusmart.local",
-                FullName = adminFullName,
-                StudentId = adminId,
-                DateTime = DateTime.UtcNow,
-            };
+            new { Id = "23769862", Pass = "Marecigan@0912", Name = "Admin" }
+        };
 
-            var createResult = await userManager.CreateAsync(adminUser, adminPass);
-            if (!createResult.Succeeded)
+        foreach (var admin in adminCredentials)
+        {
+            var adminUser = await userManager.FindByNameAsync(admin.Id);
+            if (adminUser == null)
             {
-                // Fail loudly during dev so you notice misconfiguration.
-                throw new InvalidOperationException(
-                    $"Failed to create admin user: {string.Join(", ", createResult.Errors.Select(e => e.Description))}"
-                );
+                adminUser = new ApplicationUser
+                {
+                    UserName = admin.Id, // your app stores StudentId as UserName
+                    Email = $"{admin.Id}@campusmart.local",
+                    FullName = admin.Name,
+                    StudentId = admin.Id,
+                    DateTime = DateTime.UtcNow,
+                };
+
+                var createResult = await userManager.CreateAsync(adminUser, admin.Pass);
+                if (!createResult.Succeeded)
+                {
+                    // Fail loudly during dev so you notice misconfiguration.
+                    throw new InvalidOperationException(
+                        $"Failed to create admin user {admin.Id}: {string.Join(", ", createResult.Errors.Select(e => e.Description))}"
+                    );
+                }
             }
-        }
 
-        if (!await userManager.IsInRoleAsync(adminUser, adminRole))
-        {
-            await userManager.AddToRoleAsync(adminUser, adminRole);
+            if (!await userManager.IsInRoleAsync(adminUser, adminRole))
+            {
+                await userManager.AddToRoleAsync(adminUser, adminRole);
+            }
         }
     }
 }

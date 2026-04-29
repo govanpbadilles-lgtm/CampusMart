@@ -29,7 +29,7 @@ namespace CampusMart.Controllers
                 if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
                     return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
 
-                return RedirectToAction("Index", "HomeUser");
+                return RedirectToAction("Index", "UserDashboard");
             }
 
             return View(new LoginViewModel());
@@ -60,7 +60,7 @@ namespace CampusMart.Controllers
                 if (await _userManager.IsInRoleAsync(user, "Admin"))
                     return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
 
-                return RedirectToAction("Index", "HomeUser");
+                return RedirectToAction("Index", "UserDashboard");
             }
 
             TempData["ErrorMessage"] = "Invalid Student ID or Password.";
@@ -77,7 +77,7 @@ namespace CampusMart.Controllers
                 if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
                     return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
 
-                return RedirectToAction("Index", "HomeUser");
+                return RedirectToAction("Index", "UserDashboard");
             }
 
             return View(new RegisterViewModel());

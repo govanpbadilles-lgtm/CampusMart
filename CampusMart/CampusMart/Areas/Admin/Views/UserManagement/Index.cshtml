@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Student Directory";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="section-title">Student Directory</h2>
+<div class="section-subtitle">Manage registered student accounts.</div>
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Student ID</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="studentTableBody"></tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="~/js/floor-management.js" asp-append-version="true"></script>
+}

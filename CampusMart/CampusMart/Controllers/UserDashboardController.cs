@@ -1,24 +1,24 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CampusMart.Controllers.User
+namespace CampusMart.Controllers
 {
     [Authorize]
-    public class HomeUserController : Controller
+    public class UserDashboardController : Controller
     {
         public IActionResult Index()
         {
-            return View("~/Views/User/Home/Index.cshtml");
+            return View("~/Views/UserDashboard/Index.cshtml");
         }
 
         public IActionResult Saved()
         {
-            return View("~/Views/User/Home/Saved.cshtml");
+            return View("~/Views/UserDashboard/Saved.cshtml");
         }
 
         public IActionResult Academic()
         {
-            return View("~/Views/User/Home/Academic.cshtml");
+            return View("~/Views/UserDashboard/Academic.cshtml");
         }
     }
 }

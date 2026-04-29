@@ -1,0 +1,53 @@
+@{
+    var adminId = User.Identity?.IsAuthenticated == true ? (User.Identity!.Name ?? "Admin") : "Admin";
+    var adminDisplayName = string.IsNullOrWhiteSpace(adminId) ? "Admin" : adminId;
+    var avatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(adminDisplayName)}&background=222&color=fff";
+
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+}
+
+<aside class="admin-sidebar" style="height:100vh;display:flex;flex-direction:column;">
+    <div style="padding:18px;border-bottom:1px solid rgba(255,255,255,0.08);">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:var(--primary);color:#111;display:flex;align-items:center;justify-content:center;font-weight:900;">C</div>
+            <div>
+                <div style="font-size:28px;font-weight:800;color:#ffd54f;">CampusMart</div>
+                <div style="font-size:12px;color:#b9bfcb;">Elite Admin Suite</div>
+            </div>
+        </div>
+    </div>
+
+    <nav style="padding:12px;display:flex;flex-direction:column;gap:4px;">
+        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" 
+           class="admin-nav @(currentController.Equals("Dashboard", StringComparison.OrdinalIgnoreCase) && currentAction.Equals("Index", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+            🟨 Floor Management
+        </a>
+        <a asp-area="Admin" asp-controller="Application" asp-action="Index" 
+           class="admin-nav @(currentController.Equals("Application", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+            📝 Store Applications
+        </a>
+        <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index" 
+           class="admin-nav @(currentController.Equals("UserManagement", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+            👥 Student Directory
+        </a>
+        <a asp-area="Admin" asp-controller="Order" asp-action="Index" 
+           class="admin-nav @(currentController.Equals("Order", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+            📈 Store Oversight
+        </a>
+        <a href="#" class="admin-nav">⚙️ Settings</a>
+        
+        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" style="width: 100%; margin-top: 10px;">
+            <button type="submit" class="admin-nav" style="width: 100%; text-align: left; background: transparent; border: none; cursor: pointer; color: inherit; padding: 12px 16px;">
+                🚪 Logout
+            </button>
+        </form>
+    </nav>
+
+    <div style="margin-top:auto;padding:14px;border-top:1px solid rgba(255,255,255,0.08);">
+        <button class="btn profile-trigger" style="width:100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <img src="@avatarUrl" alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%;" /> 
+            @adminDisplayName
+        </button>
+    </div>
+</aside>

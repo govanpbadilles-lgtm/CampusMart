@@ -1,4 +1,4 @@
-﻿@{
+@{
     var adminId = User.Identity?.IsAuthenticated == true ? (User.Identity!.Name ?? "Admin") : "Admin";
     var adminDisplayName = string.IsNullOrWhiteSpace(adminId) ? "Admin" : adminId;
     var avatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(adminDisplayName)}&background=222&color=fff";
@@ -19,29 +19,23 @@
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
 </head>
 <body class="admin-body">
-    <div class="cm-admin-shell">
-        @* Sidebar (separated for readability) *@
-        @await Html.PartialAsync("~/Views/Shared/_Sidebar.cshtml")
+    @* Sidebar (separated for readability) *@
+    @await Html.PartialAsync("~/Views/Shared/_AdminSidebar.cshtml")
 
-        <main class="main-content">
-            <!-- TOP NAVBAR -->
-            <header class="top-navbar">
-                <div class="top-nav-links">
-                    <a asp-area="" asp-controller="HomeUser" asp-action="Index" class="top-link">Shop</a>
-                    <a asp-area="" asp-controller="Product" asp-action="Index" class="top-link">Rentals</a>
-                    <a asp-area="" asp-controller="Product" asp-action="Sell" class="top-link">Sell</a>
-                </div>
+    <main class="admin-main">
+        <header class="topbar">
+            <h1 id="pageTitle">@ViewData["Title"]</h1>
+            <div class="top-tools">
+                <input class="search" type="text" placeholder="Search stalls, owners...">
+                <button class="icon-btn" type="button" aria-label="Notifications">🔔</button>
+                <button class="icon-btn profile-trigger" id="topProfileBtn" type="button" aria-label="Open profile editor">👤</button>
+            </div>
+        </header>
 
-                <div class="top-actions">
-                    <button class="icon-btn" type="button" aria-label="Notifications">🔔</button>
-                    <button class="icon-btn profile-trigger" id="topProfileBtn" type="button" aria-label="Open profile editor">👤</button>
-                </div>
-            </header>
-
-            @* Page content *@
+        <div class="content-wrap">
             @RenderBody()
-        </main>
-    </div>
+        </div>
+    </main>
 
     <!-- PROFILE EDIT MODAL -->
     <div class="modal-overlay" id="profileModal">

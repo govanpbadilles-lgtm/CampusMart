@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
-namespace CampusMart.Controllers.Admin
+namespace CampusMart.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = "Admin")]
-    public class ProductController : Controller
+    public class OrderController : Controller
     {
         public IActionResult Index()
         {

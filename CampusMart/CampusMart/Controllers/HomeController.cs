@@ -1,4 +1,4 @@
-﻿using CampusMart.Models;
+using CampusMart.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
