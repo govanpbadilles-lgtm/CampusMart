@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using CampusMart.Models.ViewModels.Account;
 using CampusMart.Models.Entities;
 
@@ -19,10 +20,17 @@ namespace CampusMart.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public async Task<IActionResult> Login()
         {
             if (User.Identity.IsAuthenticated)
+            {
+                // If the user is an admin, send them to the admin dashboard.
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
+                    return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+
                 return RedirectToAction("Index", "HomeUser");
+            }
 
             return View(new LoginViewModel());
         }
@@ -49,6 +57,9 @@ namespace CampusMart.Controllers
             if (result.Succeeded)
             {
                 TempData["SuccessMessage"] = "Successfully logged in. Welcome back!";
+                if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+
                 return RedirectToAction("Index", "HomeUser");
             }
 
@@ -58,10 +69,16 @@ namespace CampusMart.Controllers
         }
 
         [HttpGet]
-        public IActionResult Register()
+        public async Task<IActionResult> Register()
         {
             if (User.Identity.IsAuthenticated)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
+                    return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+
                 return RedirectToAction("Index", "HomeUser");
+            }
 
             return View(new RegisterViewModel());
         }

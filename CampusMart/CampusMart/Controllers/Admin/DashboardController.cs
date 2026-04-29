@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CampusMart.Controllers.Admin
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class DashboardController : Controller
     {
         public IActionResult Index()

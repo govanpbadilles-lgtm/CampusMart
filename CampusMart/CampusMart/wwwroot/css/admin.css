@@ -1,2 +1,26 @@
-﻿body {
+﻿/* Admin-specific overrides + missing pieces from the Admin.md prototype */
+
+body.admin-body {
+    display: flex;
+    min-height: 100vh;
+    overflow: hidden;
+    background-color: #0f0f11;
+}
+
+.dashboard-container {
+    max-width: 900px; /* closer to your Admin.md "Thinner for forms" */
+}
+
+.cm-admin-shell {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    width: 100%;
+}
+
+.history-section-title {
+    font-size: 18px;
+    color: white;
+    font-weight: 700;
+    margin: 32px 0 16px;
 }

@@ -1,0 +1,14 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="dashboard-container">
+    @await Html.PartialAsync("~/Views/Admin/Product/InProduct.cshtml")
+    @await Html.PartialAsync("~/Views/Admin/Order/InOrder.cshtml")
+</div>
+
+@section Scripts {
+    <script src="~/js/seller.js" asp-append-version="true"></script>
+}
+
