@@ -68,8 +68,7 @@
                         <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Stock: @item.Stock</div>
                         <div class="stall-footer">
                             <form asp-controller="Cart" asp-action="AddToCart" method="post" style="width: 100%;">
-                                <input type="hidden" name="productId" value="@item.Id" /> 
-                                <!-- Note: Ensure Cart system is adapted to handle StallItemId if needed, or mapping exists -->
+                                <input type="hidden" name="stallItemId" value="@item.Id" /> 
                                 <button type="submit" class="btn-enter" style="width: 100%;">Add to Cart</button>
                             </form>
                         </div>

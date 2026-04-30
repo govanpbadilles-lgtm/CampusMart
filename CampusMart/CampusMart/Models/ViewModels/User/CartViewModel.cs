@@ -12,7 +12,8 @@ namespace CampusMart.Models.ViewModels.User
     public class CartItemViewModel
     {
         public int CartItemId { get; set; }
-        public int ProductId { get; set; }
+        public int? ProductId { get; set; }
+        public int? StallItemId { get; set; }
         public string ProductName { get; set; }
         public string? ImageUrl { get; set; }
         public decimal Price { get; set; }

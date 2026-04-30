@@ -27,8 +27,10 @@ namespace CampusMart.Controllers
 
             var cart = await _db.Carts
                 .Include(c => c.CartItems)
-                .ThenInclude(ci => ci.Product)
-                .ThenInclude(p => p.Category)
+                    .ThenInclude(ci => ci.Product)
+                        .ThenInclude(p => p.Category)
+                .Include(c => c.CartItems)
+                    .ThenInclude(ci => ci.StallItem)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
             var model = new CartViewModel();
@@ -38,11 +40,12 @@ namespace CampusMart.Controllers
                 {
                     CartItemId = ci.Id,
                     ProductId = ci.ProductId,
-                    ProductName = ci.Product.Name,
-                    ImageUrl = ci.Product.ImageUrl,
-                    Price = ci.Product.Price,
+                    StallItemId = ci.StallItemId,
+                    ProductName = ci.Product?.Name ?? ci.StallItem?.Name ?? "Unknown",
+                    ImageUrl = ci.Product?.ImageUrl ?? ci.StallItem?.ImageUrl,
+                    Price = ci.Product?.Price ?? ci.StallItem?.Price ?? 0,
                     Quantity = ci.Quantity,
-                    CategoryName = ci.Product.Category?.Name
+                    CategoryName = ci.Product?.Category?.Name ?? "Stall Item"
                 }).ToList();
             }
 
@@ -50,10 +53,46 @@ namespace CampusMart.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddToCart(int productId, int quantity = 1)
+        public async Task<IActionResult> AddToCart(int? productId, int? stallItemId, int quantity = 1)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login", "Account");
+
+            if (productId == null && stallItemId == null)
+            {
+                TempData["Error"] = "Item not found.";
+                return RedirectToAction("Index", "UserDashboard");
+            }
+
+            if (productId.HasValue)
+            {
+                var product = await _db.Products.FindAsync(productId);
+                if (product == null)
+                {
+                    TempData["Error"] = "Product not found.";
+                    return RedirectToAction("Index", "UserDashboard");
+                }
+                if (product.Stock < quantity)
+                {
+                    TempData["Error"] = "Insufficient stock for this product.";
+                    return RedirectToAction("Index", "UserDashboard");
+                }
+            }
+
+            if (stallItemId.HasValue)
+            {
+                var stallItem = await _db.StallItems.FindAsync(stallItemId);
+                if (stallItem == null)
+                {
+                    TempData["Error"] = "Stall item not found.";
+                    return RedirectToAction("Index", "UserDashboard");
+                }
+                if (stallItem.Stock < quantity)
+                {
+                    TempData["Error"] = "Insufficient stock for this stall item.";
+                    return RedirectToAction("Index", "Stall", new { id = stallItem.StallId });
+                }
+            }
 
             var cart = await _db.Carts.Include(c => c.CartItems)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
@@ -65,18 +104,23 @@ namespace CampusMart.Controllers
                 await _db.SaveChangesAsync();
             }
 
-            var existing = cart.CartItems?.FirstOrDefault(ci => ci.ProductId == productId);
+            var existing = cart.CartItems?.FirstOrDefault(ci => 
+                (productId.HasValue && ci.ProductId == productId) || 
+                (stallItemId.HasValue && ci.StallItemId == stallItemId));
+
             if (existing != null)
             {
                 existing.Quantity += quantity;
             }
             else
             {
-                _db.CartItems.Add(new CartItem { CartId = cart.Id, ProductId = productId, Quantity = quantity });
+                _db.CartItems.Add(new CartItem { CartId = cart.Id, ProductId = productId, StallItemId = stallItemId, Quantity = quantity });
             }
 
             await _db.SaveChangesAsync();
-            return RedirectToAction("Index");
+            TempData["SuccessMessage"] = "Item added to cart successfully!";
+            TempData["OpenCart"] = true;
+            return Redirect(Request.Headers["Referer"].ToString() ?? "/");
         }
 
         [HttpPost]

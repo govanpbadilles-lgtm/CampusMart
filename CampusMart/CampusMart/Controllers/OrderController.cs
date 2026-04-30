@@ -29,7 +29,9 @@ namespace CampusMart.Controllers
             var orders = await _db.Orders
                 .Where(o => o.UserId == user.Id)
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
+                    .ThenInclude(oi => oi.Product)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.StallItem)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
@@ -46,8 +48,8 @@ namespace CampusMart.Controllers
                     ItemCount = o.OrderItems?.Sum(oi => oi.Quantity) ?? 0,
                     Items = o.OrderItems?.Select(oi => new OrderItemDetailViewModel
                     {
-                        ProductName = oi.Product?.Name ?? "Unknown",
-                        ImageUrl = oi.Product?.ImageUrl,
+                        ProductName = oi.Product?.Name ?? oi.StallItem?.Name ?? "Unknown",
+                        ImageUrl = oi.Product?.ImageUrl ?? oi.StallItem?.ImageUrl,
                         Price = oi.Price,
                         Quantity = oi.Quantity
                     }).ToList() ?? new()
@@ -66,7 +68,9 @@ namespace CampusMart.Controllers
             var order = await _db.Orders
                 .Where(o => o.Id == id && o.UserId == user.Id)
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
+                    .ThenInclude(oi => oi.Product)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.StallItem)
                 .FirstOrDefaultAsync();
 
             if (order == null) return RedirectToAction("Index");
@@ -82,8 +86,8 @@ namespace CampusMart.Controllers
                 ItemCount = order.OrderItems?.Sum(oi => oi.Quantity) ?? 0,
                 Items = order.OrderItems?.Select(oi => new OrderItemDetailViewModel
                 {
-                    ProductName = oi.Product?.Name ?? "Unknown",
-                    ImageUrl = oi.Product?.ImageUrl,
+                    ProductName = oi.Product?.Name ?? oi.StallItem?.Name ?? "Unknown",
+                    ImageUrl = oi.Product?.ImageUrl ?? oi.StallItem?.ImageUrl,
                     Price = oi.Price,
                     Quantity = oi.Quantity
                 }).ToList() ?? new()
@@ -101,8 +105,10 @@ namespace CampusMart.Controllers
 
             var cart = await _db.Carts
                 .Include(c => c.CartItems)
-                .ThenInclude(ci => ci.Product)
-                .ThenInclude(p => p.Category)
+                    .ThenInclude(ci => ci.Product)
+                        .ThenInclude(p => p.Category)
+                .Include(c => c.CartItems)
+                    .ThenInclude(ci => ci.StallItem)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
             if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
@@ -114,11 +120,12 @@ namespace CampusMart.Controllers
                 {
                     CartItemId = ci.Id,
                     ProductId = ci.ProductId,
-                    ProductName = ci.Product.Name,
-                    ImageUrl = ci.Product.ImageUrl,
-                    Price = ci.Product.Price,
+                    StallItemId = ci.StallItemId,
+                    ProductName = ci.Product?.Name ?? ci.StallItem?.Name ?? "Unknown",
+                    ImageUrl = ci.Product?.ImageUrl ?? ci.StallItem?.ImageUrl,
+                    Price = ci.Product?.Price ?? ci.StallItem?.Price ?? 0,
                     Quantity = ci.Quantity,
-                    CategoryName = ci.Product.Category?.Name
+                    CategoryName = ci.Product?.Category?.Name ?? "Stall Item"
                 }).ToList(),
                 ShippingAddress = user.Address ?? ""
             };
@@ -135,7 +142,9 @@ namespace CampusMart.Controllers
 
             var cart = await _db.Carts
                 .Include(c => c.CartItems)
-                .ThenInclude(ci => ci.Product)
+                    .ThenInclude(ci => ci.Product)
+                .Include(c => c.CartItems)
+                    .ThenInclude(ci => ci.StallItem)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
             if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
@@ -145,15 +154,16 @@ namespace CampusMart.Controllers
             {
                 UserId = user.Id,
                 Status = "Completed",
-                TotalAmount = (int)cart.CartItems.Sum(ci => ci.Product.Price * ci.Quantity),
+                TotalAmount = (int)cart.CartItems.Sum(ci => (ci.Product?.Price ?? ci.StallItem?.Price ?? 0) * ci.Quantity),
                 ShippingAddress = model.ShippingAddress,
                 PaymentMethod = model.PaymentMethod ?? "Cash on Delivery",
                 CreatedAt = DateTime.UtcNow,
                 OrderItems = cart.CartItems.Select(ci => new OrderItem
                 {
                     ProductId = ci.ProductId,
+                    StallItemId = ci.StallItemId,
                     Quantity = ci.Quantity,
-                    Price = ci.Product.Price
+                    Price = ci.Product?.Price ?? ci.StallItem?.Price ?? 0
                 }).ToList()
             };
 

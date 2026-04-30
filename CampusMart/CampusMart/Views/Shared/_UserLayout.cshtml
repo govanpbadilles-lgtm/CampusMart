@@ -106,37 +106,7 @@
 
     <!-- CART SIDEBAR -->
     <div class="cart-sidebar-wrapper" id="cartSidebar">
-        <div class="cart-header">
-            <h2>Your Cart</h2>
-            <button class="cart-close-btn" id="closeCartBtn">&times;</button>
-        </div>
-        <div class="cart-body">
-            <!-- Dummy cart items for preview -->
-            <div class="cart-item-mini">
-                <img src="https://images.unsplash.com/photo-1559496417-e7f25cb247f3?q=80&w=2000&auto=format&fit=crop" alt="Item">
-                <div class="cart-item-info">
-                    <div class="cart-item-title">Caffeine Lab Brew</div>
-                    <div class="cart-item-qty">Qty: 1</div>
-                </div>
-                <div class="cart-item-price">$5.00</div>
-            </div>
-            <div class="cart-item-mini">
-                <img src="https://images.unsplash.com/photo-1585036156171-384164a8c675?q=80&w=2000&auto=format&fit=crop" alt="Item">
-                <div class="cart-item-info">
-                    <div class="cart-item-title">Stationery Pack</div>
-                    <div class="cart-item-qty">Qty: 2</div>
-                </div>
-                <div class="cart-item-price">$24.00</div>
-            </div>
-        </div>
-        <div class="cart-footer">
-            <div class="cart-total-row">
-                <span>Total</span>
-                <span>$29.00</span>
-            </div>
-            <a asp-controller="Order" asp-action="Checkout" class="btn-checkout">Proceed to Checkout</a>
-            <a asp-controller="Cart" asp-action="Index" style="display:block; text-align:center; color:var(--text-muted); font-size:12px; margin-top:12px; text-decoration:none;">View Full Cart</a>
-        </div>
+        @await Component.InvokeAsync("CartSidebar")
     </div>
 
     <!-- NOTIFICATION SIDEBAR -->
@@ -196,6 +166,19 @@
             <text>
             document.addEventListener("DOMContentLoaded", function() {
                 showToast('@Html.Raw(TempData["SuccessMessage"])', false);
+            });
+            </text>
+        }
+        @if (TempData["OpenCart"] != null && (bool)TempData["OpenCart"])
+        {
+            <text>
+            document.addEventListener("DOMContentLoaded", function() {
+                const cartSidebar = document.getElementById('cartSidebar');
+                const sidebarOverlay = document.getElementById('sidebarOverlay');
+                if (cartSidebar && sidebarOverlay) {
+                    cartSidebar.classList.add('open');
+                    sidebarOverlay.classList.add('active');
+                }
             });
             </text>
         }

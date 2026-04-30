@@ -42,11 +42,23 @@ namespace CampusMart.Data
                 .WithMany(p => p.CartItems)
                 .HasForeignKey(ci => ci.ProductId);
 
+            // CartItem → StallItem
+            builder.Entity<CartItem>()
+                .HasOne(ci => ci.StallItem)
+                .WithMany()
+                .HasForeignKey(ci => ci.StallItemId);
+
             // OrderItem → Product
             builder.Entity<OrderItem>()
                 .HasOne(oi => oi.Product)
                 .WithMany(p => p.OrderItems)
                 .HasForeignKey(oi => oi.ProductId);
+
+            // OrderItem → StallItem
+            builder.Entity<OrderItem>()
+                .HasOne(oi => oi.StallItem)
+                .WithMany()
+                .HasForeignKey(oi => oi.StallItemId);
 
             // Product → Category
             builder.Entity<Product>()
