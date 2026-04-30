@@ -92,16 +92,43 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-    if (saveProfileBtn) {
-        saveProfileBtn.addEventListener('click', () => {
-            if (profileNameInput && profileNameInput.value.trim() !== '' && sidebarName) {
-                sidebarName.textContent = profileNameInput.value;
+    // Quick Edit Form Submit
+    const quickEditForm = document.getElementById('quickEditForm');
+    if (quickEditForm) {
+        quickEditForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (saveProfileBtn) {
+                saveProfileBtn.disabled = true;
+                saveProfileBtn.textContent = 'Saving...';
             }
-            if (modalPicPreview && sidebarAvatar) {
-                sidebarAvatar.src = modalPicPreview.src;
+
+            const fd = new FormData();
+            fd.append('fullName', profileNameInput.value);
+            if (profilePicInput.files.length > 0) {
+                fd.append('avatarFile', profilePicInput.files[0]);
             }
-            if (profileModal) profileModal.classList.remove('active');
-            showToast('Profile updated successfully!');
+
+            try {
+                const res = await fetch('/Profile/QuickUpdate', { method: 'POST', body: fd });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (sidebarName) sidebarName.textContent = data.fullName;
+                    if (sidebarAvatar && data.avatarUrl) sidebarAvatar.src = data.avatarUrl;
+                    
+                    showToast('Profile updated successfully!');
+                    if (profileModal) profileModal.classList.remove('active');
+                } else {
+                    showToast('Failed to update profile.', true);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Network error.', true);
+            } finally {
+                if (saveProfileBtn) {
+                    saveProfileBtn.disabled = false;
+                    saveProfileBtn.textContent = 'Save Changes';
+                }
+            }
         });
     }
 
@@ -181,11 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
         saveBtn.addEventListener('click', () => {
             saveBtn.textContent = 'Saving...';
             saveBtn.style.pointerEvents = 'none';
-            setTimeout(() => {
-                saveBtn.textContent = 'Save Changes';
-                saveBtn.style.pointerEvents = 'auto';
-                showToast('Profile updated successfully!');
-            }, 800);
+            // Allow native form submission to proceed
         });
     }
 });

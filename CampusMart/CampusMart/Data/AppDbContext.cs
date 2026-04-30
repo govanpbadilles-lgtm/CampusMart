@@ -15,6 +15,11 @@ namespace CampusMart.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
 
+        // Floor Management
+        public DbSet<Floor> Floors { get; set; }
+        public DbSet<Stall> Stalls { get; set; }
+        public DbSet<StallItem> StallItems { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -49,6 +54,20 @@ namespace CampusMart.Data
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId);
 
+            // Floor → Stalls (one-to-many)
+            builder.Entity<Stall>()
+                .HasOne(s => s.Floor)
+                .WithMany(f => f.Stalls)
+                .HasForeignKey(s => s.FloorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Stall → StallItems (one-to-many)
+            builder.Entity<StallItem>()
+                .HasOne(si => si.Stall)
+                .WithMany(s => s.StallItems)
+                .HasForeignKey(si => si.StallId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Seed categories
             builder.Entity<Category>().HasData(
                 new Category { Id = 1, Name = "Textbooks & Academics", Descscription = "Academic books and study materials" },
@@ -62,3 +81,4 @@ namespace CampusMart.Data
         }
     }
 }
+

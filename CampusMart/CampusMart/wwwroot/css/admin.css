@@ -12,7 +12,7 @@
     min-height: 100vh;
     background: #090b0f;
     color: #fff;
-    overflow: hidden;
+    overflow-x: hidden;
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -403,4 +403,275 @@ th {
     .metrics, .stall-grid, .kpi-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* ── Modal System ── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.profile-modal {
+    background: #14171c;
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 28px;
+    color: #fff;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-title {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.close-modal {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+.close-modal:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.modal-form-group {
+    margin-bottom: 14px;
+}
+
+.modal-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+.modal-input:focus {
+    border-color: var(--primary);
+}
+
+.modal-input option {
+    background: #1a1d24;
+    color: #fff;
+}
+
+textarea.modal-input {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.btn-save {
+    background: var(--primary);
+    color: #111;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+}
+
+.profile-pic-edit {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.profile-pic-preview {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary);
+}
+
+/* ── Custom UI Alerts / Toasts ── */
+#toastContainer {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.custom-toast {
+    background: rgba(18, 20, 24, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    max-width: 400px;
+    transform: translateX(120%);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+    opacity: 0;
+}
+
+.custom-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.custom-toast.error {
+    border-left: 4px solid #ff6b6b;
+}
+
+.custom-toast.success {
+    border-left: 4px solid #51cf66;
+}
+
+/* ── Custom Confirm Dialog ── */
+#customConfirmOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    z-index: 10001;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+#customConfirmOverlay.active {
+    display: flex;
+}
+
+.confirm-dialog {
+    background: #14171c;
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 32px;
+    color: #fff;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+    text-align: center;
+}
+
+.confirm-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: inline-block;
+}
+
+.confirm-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.confirm-message {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.confirm-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.confirm-btn.cancel {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.confirm-btn.cancel:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.confirm-btn.danger {
+    background: rgba(255, 107, 107, 0.15);
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.confirm-btn.danger:hover {
+    background: #ff6b6b;
+    color: #111;
 }

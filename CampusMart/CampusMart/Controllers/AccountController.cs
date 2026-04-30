@@ -69,6 +69,27 @@ namespace CampusMart.Controllers
         }
 
         [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult ForgotPassword(string studentId)
+        {
+            if (string.IsNullOrEmpty(studentId))
+            {
+                ModelState.AddModelError("", "Please enter your Student ID.");
+                return View();
+            }
+
+            // In a real application, you would generate a reset token and send an email.
+            // For now, we will simulate a successful password reset email sent.
+            TempData["SuccessMessage"] = "If an account with that Student ID exists, a password reset link has been sent to the registered email address.";
+            return RedirectToAction("Login");
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Register()
         {
             if (User.Identity.IsAuthenticated)

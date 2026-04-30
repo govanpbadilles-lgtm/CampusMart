@@ -1,7 +1,11 @@
+@using Microsoft.AspNetCore.Identity
+@using CampusMart.Models.Entities
+@inject UserManager<ApplicationUser> UserManager
 @{
-    var adminId = User.Identity?.IsAuthenticated == true ? (User.Identity!.Name ?? "Admin") : "Admin";
-    var adminDisplayName = string.IsNullOrWhiteSpace(adminId) ? "Admin" : adminId;
-    var avatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(adminDisplayName)}&background=222&color=fff";
+    var appUser = await UserManager.GetUserAsync(User);
+    var adminDisplayName = appUser?.FullName ?? (User.Identity?.Name ?? "Admin");
+    var avatarUrl = appUser?.AvatarUrl ?? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(adminDisplayName)}&background=222&color=fff";
+    var adminId = appUser?.StudentId ?? (User.Identity?.Name ?? "Admin");
     ViewData["Title"] ??= "Admin";
 }
 
@@ -27,7 +31,7 @@
             <h1 id="pageTitle">@ViewData["Title"]</h1>
             <div class="top-tools">
                 <input class="search" type="text" placeholder="Search stalls, owners...">
-                <button class="icon-btn" type="button" aria-label="Notifications">🔔</button>
+                <a asp-area="Admin" asp-controller="Notification" asp-action="Index" class="icon-btn" style="text-decoration:none;" aria-label="Notifications">🔔</a>
                 <button class="icon-btn profile-trigger" id="topProfileBtn" type="button" aria-label="Open profile editor">👤</button>
             </div>
         </header>
@@ -45,28 +49,30 @@
                 <button class="close-modal" id="closeProfileModal" type="button">&times;</button>
             </div>
 
-            <div class="profile-pic-edit">
-                <img src="@avatarUrl" alt="Profile" class="profile-pic-preview" id="modalPicPreview" />
-                <button class="btn-outline" type="button" id="changeProfilePicBtn">Change Picture</button>
-                <input type="file" id="profilePicInput" style="display: none;" accept="image/*" />
-            </div>
+            <form id="adminQuickEditForm" enctype="multipart/form-data">
+                <div class="profile-pic-edit">
+                    <img src="@avatarUrl" alt="Profile" class="profile-pic-preview" id="modalPicPreview" />
+                    <button class="btn-outline" type="button" id="changeProfilePicBtn">Change Picture</button>
+                    <input type="file" id="profilePicInput" name="avatarFile" style="display: none;" accept="image/*" />
+                </div>
 
-            <div class="modal-form-group">
-                <label class="modal-label" for="profileNameInput">Full Name</label>
-                <input type="text" class="modal-input" id="profileNameInput" value="@adminDisplayName" />
-            </div>
+                <div class="modal-form-group">
+                    <label class="modal-label" for="profileNameInput">Full Name</label>
+                    <input type="text" class="modal-input" id="profileNameInput" name="fullName" value="@adminDisplayName" required />
+                </div>
 
-            <div class="modal-form-group">
-                <label class="modal-label" for="profileIdInput">ID Number</label>
-                <input type="text" class="modal-input" id="profileIdInput" value="@adminId" readonly />
-            </div>
+                <div class="modal-form-group">
+                    <label class="modal-label" for="profileIdInput">ID Number</label>
+                    <input type="text" class="modal-input" id="profileIdInput" value="@adminId" readonly style="background: rgba(255,255,255,0.05); color: var(--text-muted);" />
+                </div>
 
-            <div class="modal-form-group">
-                <label class="modal-label" for="profileCourseInput">Course</label>
-                <input type="text" class="modal-input" id="profileCourseInput" value="Admin Portal" readonly />
-            </div>
+                <div class="modal-form-group">
+                    <label class="modal-label" for="profileCourseInput">Course</label>
+                    <input type="text" class="modal-input" id="profileCourseInput" value="Admin Portal" readonly style="background: rgba(255,255,255,0.05); color: var(--text-muted);" />
+                </div>
 
-            <button class="btn-save" id="saveProfileBtn" type="button">Save Changes</button>
+                <button class="btn-save" id="saveProfileBtn" type="submit">Save Changes</button>
+            </form>
         </div>
     </div>
 

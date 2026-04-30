@@ -1,5 +1,12 @@
+@using Microsoft.AspNetCore.Identity
+@using CampusMart.Models.Entities
+@inject UserManager<ApplicationUser> UserManager
 @{
-    var userName = User.Identity.IsAuthenticated ? User.Identity.Name : "Guest";
+    var appUser = await UserManager.GetUserAsync(User);
+    var userName = appUser?.FullName ?? (User.Identity?.Name ?? "Guest");
+    var avatarUrl = appUser?.AvatarUrl ?? $"https://ui-avatars.com/api/?name={userName}&background=222&color=fff";
+    var studentId = appUser?.StudentId ?? "";
+
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
 }
@@ -43,7 +50,7 @@
         <aside class="sidebar" id="mainSidebar" style="height: 100%; border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column;">
             
             <div class="user-profile" id="userProfileBtn" style="display: flex; align-items: center; gap: 12px; padding: 24px; cursor: pointer;">
-                <img src="https://ui-avatars.com/api/?name=@userName&background=222&color=fff" alt="@userName" class="user-avatar" id="sidebarAvatar" style="width:36px; height:36px; border-radius:50%;">
+                <img src="@avatarUrl" alt="@userName" class="user-avatar" id="sidebarAvatar" style="width:36px; height:36px; border-radius:50%; object-fit: cover;">
                 <div class="user-info">
                     <h3 id="sidebarName" style="font-size:13px; font-weight:700; margin:0; color:var(--primary);">Student Portal</h3>
                     <p style="font-size:11px; color:var(--text-muted); margin:0;">Elite Member</p>
@@ -76,7 +83,7 @@
                     <span>⊕</span> Post Listing
                 </a>
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
-                    <a href="#" style="color: var(--text-muted); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 12px; transition: color 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
+                    <a asp-controller="Settings" asp-action="Index" style="color: var(--text-muted); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 12px; transition: color 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
                         <span>⚙</span> Settings
                     </a>
                     <a href="#" style="color: var(--text-muted); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 12px; transition: color 0.2s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
@@ -160,23 +167,25 @@
                 <h2 class="modal-title">Edit Profile</h2>
                 <button class="close-modal" id="closeProfileModal">&times;</button>
             </div>
-            <div class="profile-pic-edit">
-                <img src="https://ui-avatars.com/api/?name=@userName&background=222&color=fff" alt="Profile" class="profile-pic-preview" id="modalPicPreview">
-                <button class="btn-outline" onclick="document.getElementById('profilePicInput').click()">Change Picture</button>
-                <input type="file" id="profilePicInput" style="display:none;" accept="image/*">
-            </div>
-            <div class="modal-form-group">
-                <label class="modal-label">Full Name</label>
-                <input type="text" class="modal-input" id="profileNameInput" value="@userName">
-            </div>
-            <div class="modal-form-group">
-                <label class="modal-label">Student ID</label>
-                <input type="text" class="modal-input" value="@userName" readonly>
-            </div>
-            <div style="display:flex;gap:12px;margin-top:16px;">
-                <button class="btn-save" id="saveProfileBtn" style="flex:1;">Save Changes</button>
-                <a asp-controller="Profile" asp-action="Index" class="btn-outline" style="display:flex;align-items:center;padding:14px 20px;text-decoration:none;font-size:13px;">Full Edit</a>
-            </div>
+            <form id="quickEditForm" enctype="multipart/form-data">
+                <div class="profile-pic-edit">
+                    <img src="@avatarUrl" alt="Profile" class="profile-pic-preview" id="modalPicPreview">
+                    <button type="button" class="btn-outline" onclick="document.getElementById('profilePicInput').click()">Change Picture</button>
+                    <input type="file" id="profilePicInput" accept="image/*" style="display:none;">
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-label">Full Name</label>
+                    <input type="text" class="modal-input" id="profileNameInput" value="@userName" required>
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-label">Student ID</label>
+                    <input type="text" class="modal-input" value="@studentId" readonly style="background: rgba(255,255,255,0.05); color: var(--text-muted);">
+                </div>
+                <div style="display:flex;gap:12px;margin-top:16px;">
+                    <button type="submit" class="btn-save" id="saveProfileBtn" style="flex:1;">Save Changes</button>
+                    <a asp-controller="Profile" asp-action="Index" class="btn-outline" style="display:flex;align-items:center;padding:14px 20px;text-decoration:none;font-size:13px;">Full Edit</a>
+                </div>
+            </form>
         </div>
     </div>
 

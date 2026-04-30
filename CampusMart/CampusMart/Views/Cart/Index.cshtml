@@ -6,7 +6,7 @@
 
 <div class="cart-container">
     <div class="page-header animate-in">
-        <a asp-controller="HomeUser" asp-action="Index" class="back-btn">←</a>
+        <a asp-controller="UserDashboard" asp-action="Index" class="back-btn">←</a>
         <div><h1 class="page-title">Shopping Cart</h1><p class="page-subtitle">@Model.ItemCount items in your cart</p></div>
     </div>
 
@@ -46,7 +46,7 @@
             <span class="cart-empty-icon">🛒</span>
             <h3>Your cart is empty</h3>
             <p>Browse the marketplace to find great deals!</p>
-            <a asp-controller="HomeUser" asp-action="Index" class="btn-enter" style="display:inline-block;margin-top:16px;padding:12px 24px;">Browse Shop</a>
+            <a asp-controller="UserDashboard" asp-action="Index" class="btn-enter" style="display:inline-block;margin-top:16px;padding:12px 24px;">Browse Shop</a>
         </div>
     }
 </div>

@@ -12,10 +12,10 @@
 
     <div class="avatar-section animate-in d1">
         <div class="avatar-wrapper" onclick="document.getElementById('avatarInput').click()">
-            <img src="https://ui-avatars.com/api/?name=@(Model?.FirstName)+@(Model?.LastName)&background=222&color=fff&size=220" alt="Profile" class="avatar-large" id="avatarPreview">
+            <img src="@(string.IsNullOrEmpty(Model?.AvatarUrl) ? $"https://ui-avatars.com/api/?name={Model?.FirstName}+{Model?.LastName}&background=222&color=fff&size=220" : Model.AvatarUrl)" alt="Profile" class="avatar-large" id="avatarPreview">
             <div class="avatar-edit-overlay">📷</div>
         </div>
-        <input type="file" id="avatarInput" style="display:none;" accept="image/*">
+        <input type="file" name="AvatarFile" id="avatarInput" form="profileForm" style="display:none;" accept="image/*">
         <div class="avatar-details">
             <h2 id="displayName">@(Model?.FirstName) @(Model?.LastName)</h2>
             <span class="role-badge">Premium Member</span>
@@ -30,7 +30,8 @@
         </div>
     </div>
 
-    <form asp-controller="Profile" asp-action="Update" method="post">
+    <form id="profileForm" asp-controller="Profile" asp-action="Update" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="ModelOnly" class="validation-error" style="color: #ff8f8f; margin-bottom: 20px; text-align: center;"></div>
         <div class="form-section animate-in d2">
             <div class="form-section-header">
                 <span class="form-section-icon">👤</span>
@@ -38,8 +39,8 @@
                 <span class="form-section-desc">Fields with 🔒 cannot be changed</span>
             </div>
             <div class="form-grid">
-                <div class="form-group"><label class="form-label">First Name</label><input type="text" class="form-input" id="firstName" name="FirstName" value="@Model?.FirstName"></div>
-                <div class="form-group"><label class="form-label">Last Name</label><input type="text" class="form-input" id="lastName" name="LastName" value="@Model?.LastName"></div>
+                <div class="form-group"><label class="form-label">First Name</label><input type="text" class="form-input" id="firstName" asp-for="FirstName"><span asp-validation-for="FirstName" style="color:#ff8f8f; font-size:12px;"></span></div>
+                <div class="form-group"><label class="form-label">Last Name</label><input type="text" class="form-input" id="lastName" asp-for="LastName"><span asp-validation-for="LastName" style="color:#ff8f8f; font-size:12px;"></span></div>
                 <div class="form-group"><label class="form-label">Student ID <span class="lock-icon">🔒</span></label><input type="text" class="form-input" value="@Model?.StudentId" readonly></div>
                 <div class="form-group"><label class="form-label">Department <span class="lock-icon">🔒</span></label><input type="text" class="form-input" value="@Model?.Department" readonly></div>
                 <div class="form-group">
@@ -62,7 +63,7 @@
                         }
                     </select>
                 </div>
-                <div class="form-group"><label class="form-label">Section</label><input type="text" class="form-input" name="Section" value="@Model?.Section"></div>
+                <div class="form-group"><label class="form-label">Section</label><input type="text" class="form-input" asp-for="Section"><span asp-validation-for="Section" style="color:#ff8f8f; font-size:12px;"></span></div>
             </div>
         </div>
 
@@ -70,8 +71,8 @@
             <div class="form-section-header"><span class="form-section-icon">📧</span><h3 class="form-section-title">Contact Information</h3></div>
             <div class="form-grid">
                 <div class="form-group"><label class="form-label">Email <span class="lock-icon">🔒</span></label><input type="email" class="form-input" value="@Model?.Email" readonly></div>
-                <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" class="form-input" name="Phone" value="@Model?.Phone" placeholder="+63 9XX XXX XXXX"></div>
-                <div class="form-group full-width"><label class="form-label">Address</label><input type="text" class="form-input" name="Address" value="@Model?.Address" placeholder="Enter your address"></div>
+                <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" class="form-input" asp-for="Phone" placeholder="+63 9XX XXX XXXX"><span asp-validation-for="Phone" style="color:#ff8f8f; font-size:12px;"></span></div>
+                <div class="form-group full-width"><label class="form-label">Address</label><input type="text" class="form-input" asp-for="Address" placeholder="Enter your address"><span asp-validation-for="Address" style="color:#ff8f8f; font-size:12px;"></span></div>
             </div>
         </div>
 
@@ -84,8 +85,23 @@
         </div>
 
         <div class="action-bar animate-in d4">
-            <a asp-controller="HomeUser" asp-action="Index" class="btn-cancel" style="text-decoration:none;">Cancel</a>
+            <a asp-controller="UserDashboard" asp-action="Index" class="btn-cancel" style="text-decoration:none;">Cancel</a>
             <button type="submit" class="btn-save-profile" id="saveBtn">Save Changes</button>
         </div>
     </form>
 </div>
+
+@section Scripts {
+    <script>
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+            document.addEventListener("DOMContentLoaded", function() {
+                if (typeof showToast === 'function') {
+                    showToast('@Html.Raw(TempData["SuccessMessage"])', 'success');
+                }
+            });
+            </text>
+        }
+    </script>
+}

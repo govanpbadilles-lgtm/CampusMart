@@ -1,0 +1,91 @@
+@model IEnumerable<CampusMart.Models.Entities.Product>
+
+@{
+    ViewData["Title"] = "CampusMart | Store";
+    var categories = ViewBag.Categories as IEnumerable<CampusMart.Models.Entities.Category>;
+    var selectedCategory = ViewBag.SelectedCategory as string;
+}
+
+<div class="dashboard-container" style="padding-top: 40px; padding-bottom: 80px;">
+    <div class="container-xl">
+        <div class="marketplace-header animate-fade-in" style="margin-bottom: 30px;">
+            <div class="header-left">
+                <h2 class="section-title">Campus Store</h2>
+                <p class="header-desc">Browse all available products from campus sellers.</p>
+            </div>
+            <div class="header-right d-none d-md-flex">
+                <a asp-controller="Account" asp-action="Login" class="btn cm-btn-primary">Sign in to buy</a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Categories Sidebar -->
+            <div class="col-md-3 animate-fade-in d1">
+                <div class="glass-card p-4" style="position: sticky; top: 100px;">
+                    <h5 class="mb-3" style="font-weight: 800;">Categories</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <a asp-action="Index" asp-route-category="" class="btn @(string.IsNullOrEmpty(selectedCategory) ? "btn-warning" : "btn-outline-secondary") text-start border-0">
+                            All Items
+                        </a>
+                        @if (categories != null)
+                        {
+                            foreach (var cat in categories)
+                            {
+                                <a asp-action="Index" asp-route-category="@cat.Name" class="btn @(selectedCategory == cat.Name ? "btn-warning" : "btn-outline-secondary") text-start border-0">
+                                    @cat.Name
+                                </a>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="col-md-9 animate-fade-in d2">
+                @if (Model != null && Model.Any())
+                {
+                    <div class="row g-4">
+                        @foreach (var p in Model)
+                        {
+                            <div class="col-sm-6 col-lg-4">
+                                <div class="glass-card h-100 p-0 overflow-hidden d-flex flex-column" style="border: 1px solid rgba(255,255,255,0.05);">
+                                    <div style="height: 180px; background: #1f252f; position: relative;">
+                                        @if (!string.IsNullOrEmpty(p.ImageUrl))
+                                        {
+                                            <img src="@p.ImageUrl" alt="@p.Name" style="width: 100%; height: 100%; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted">
+                                                <span>No Image</span>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="p-3 d-flex flex-column flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="mb-0" style="font-weight: 700; font-size: 16px;">@p.Name</h5>
+                                            <span style="font-weight: 800; color: #ffd54f;">$@p.Price.ToString("F2")</span>
+                                        </div>
+                                        <p class="text-muted small mb-3 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                            @p.Description
+                                        </p>
+                                        <a asp-controller="Account" asp-action="Login" class="btn btn-outline-warning w-100" style="font-weight: 600; border-radius: 8px;">Log in to Purchase</a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="glass-card text-center p-5">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🛍️</div>
+                        <h4 style="font-weight: 700;">No products found</h4>
+                        <p class="text-muted">There are currently no products available in this category.</p>
+                        <a asp-action="Index" class="btn btn-outline-secondary mt-3">Clear Filters</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

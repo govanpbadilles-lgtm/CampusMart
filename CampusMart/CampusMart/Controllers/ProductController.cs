@@ -50,7 +50,9 @@ namespace CampusMart.Controllers
                 CategoryId = model.CategoryId,
                 Description = model.Description ?? "",
                 Stock = 1,
-                ImageUrl = ""
+                ImageUrl = "",
+                SellerId = user.Id,
+                Status = "Pending"
             };
 
             _db.Products.Add(product);

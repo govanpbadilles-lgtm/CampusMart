@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace CampusMart.Models.Entities
 {
@@ -22,6 +22,11 @@ namespace CampusMart.Models.Entities
 
         public int CategoryId { get; set; }
         public Category Category { get; set; }
+
+        public string Status { get; set; } = "Pending"; // "Pending", "Approved", "Rejected"
+        
+        public string? SellerId { get; set; }
+        public ApplicationUser? Seller { get; set; }
 
         public ICollection<OrderItem> OrderItems { get; set; }
         public ICollection<CartItem> CartItems { get; set; }

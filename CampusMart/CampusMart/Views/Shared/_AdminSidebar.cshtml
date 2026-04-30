@@ -1,7 +1,10 @@
+@using Microsoft.AspNetCore.Identity
+@using CampusMart.Models.Entities
+@inject UserManager<ApplicationUser> UserManager
 @{
-    var adminId = User.Identity?.IsAuthenticated == true ? (User.Identity!.Name ?? "Admin") : "Admin";
-    var adminDisplayName = string.IsNullOrWhiteSpace(adminId) ? "Admin" : adminId;
-    var avatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(adminDisplayName)}&background=222&color=fff";
+    var appUser = await UserManager.GetUserAsync(User);
+    var adminDisplayName = appUser?.FullName ?? (User.Identity?.Name ?? "Admin");
+    var avatarUrl = appUser?.AvatarUrl ?? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(adminDisplayName)}&background=222&color=fff";
 
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
@@ -23,9 +26,9 @@
            class="admin-nav @(currentController.Equals("Dashboard", StringComparison.OrdinalIgnoreCase) && currentAction.Equals("Index", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
             🟨 Floor Management
         </a>
-        <a asp-area="Admin" asp-controller="Application" asp-action="Index" 
-           class="admin-nav @(currentController.Equals("Application", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
-            📝 Store Applications
+        <a asp-area="Admin" asp-controller="Listing" asp-action="Index" 
+           class="admin-nav @(currentController.Equals("Listing", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+            📝 Listing
         </a>
         <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index" 
            class="admin-nav @(currentController.Equals("UserManagement", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
@@ -35,7 +38,10 @@
            class="admin-nav @(currentController.Equals("Order", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
             📈 Store Oversight
         </a>
-        <a href="#" class="admin-nav">⚙️ Settings</a>
+        <a asp-area="Admin" asp-controller="Settings" asp-action="Index" 
+           class="admin-nav @(currentController.Equals("Settings", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+            ⚙️ Settings
+        </a>
         
         <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" style="width: 100%; margin-top: 10px;">
             <button type="submit" class="admin-nav" style="width: 100%; text-align: left; background: transparent; border: none; cursor: pointer; color: inherit; padding: 12px 16px;">
@@ -46,8 +52,8 @@
 
     <div style="margin-top:auto;padding:14px;border-top:1px solid rgba(255,255,255,0.08);">
         <button class="btn profile-trigger" style="width:100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <img src="@avatarUrl" alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%;" /> 
-            @adminDisplayName
+            <img src="@avatarUrl" alt="Avatar" id="sidebarAvatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" /> 
+            <span id="sidebarName">@adminDisplayName</span>
         </button>
     </div>
 </aside>
