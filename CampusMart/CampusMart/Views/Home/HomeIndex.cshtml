@@ -113,19 +113,9 @@
         </div>
 
         <div class="row g-4">
-            @{
-                var categories = new[]
-                {
-                    new { Icon = "👕", Name = "Uniforms", Count = 24 },
-                    new { Icon = "🍱", Name = "Meals",    Count = 38 },
-                    new { Icon = "🧋", Name = "Drinks",   Count = 29 },
-                    new { Icon = "✏️", Name = "Supplies", Count = 65 },
-                    new { Icon = "📚", Name = "Books",    Count = 47 },
-                    new { Icon = "🎒", Name = "Merch",    Count = 18 },
-                };
-            }
+            @model IEnumerable<CampusMart.Models.Entities.Category>
 
-            @foreach (var cat in categories)
+            @foreach (var cat in Model.Where(c => c.Name != "Dorm Essentials"))
             {
                 <div class="col-6 col-sm-4 col-lg-2">
                     <a asp-area=""
@@ -133,9 +123,16 @@
                        asp-action="Index"
                        asp-route-category="@cat.Name"
                        class="cm-cat-card glass-card h-100">
-                        <div class="cm-cat-icon">@cat.Icon</div>
+                        <div class="cm-cat-icon">@(string.IsNullOrEmpty(cat.Icon) ? "📦" : cat.Icon)</div>
                         <div class="cm-cat-name">@cat.Name</div>
-                        <div class="cm-cat-count">@cat.Count items</div>
+                        <div class="cm-cat-count">
+                            @{
+                                int count = cat.Products?.Count() ?? 0;
+                                if (cat.Name == "Food & Beverages") count += ViewBag.StallCount ?? 0;
+                                if (cat.Name == "Other") count += ViewBag.RentalCount ?? 0;
+                            }
+                            @count items
+                        </div>
                     </a>
                 </div>
             }

@@ -20,6 +20,15 @@ namespace CampusMart.Data
         public DbSet<Stall> Stalls { get; set; }
         public DbSet<StallItem> StallItems { get; set; }
 
+        // Rentals
+        public DbSet<RentalCategory> RentalCategories { get; set; }
+        public DbSet<RentalItem> RentalItems { get; set; }
+        public DbSet<Rental> Rentals { get; set; }
+
+        // Added Features
+        public DbSet<SavedItem> SavedItems { get; set; }
+        public DbSet<AcademicResource> AcademicResources { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -80,15 +89,57 @@ namespace CampusMart.Data
                 .HasForeignKey(si => si.StallId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // RentalCategory → RentalItems (one-to-many)
+            builder.Entity<RentalItem>()
+                .HasOne(ri => ri.RentalCategory)
+                .WithMany(rc => rc.RentalItems)
+                .HasForeignKey(ri => ri.RentalCategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // RentalItem → Rentals (one-to-many)
+            builder.Entity<Rental>()
+                .HasOne(r => r.RentalItem)
+                .WithMany(ri => ri.Rentals)
+                .HasForeignKey(r => r.RentalItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Rental → User
+            builder.Entity<Rental>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // SavedItem → User
+            builder.Entity<SavedItem>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // SavedItem → Product
+            builder.Entity<SavedItem>()
+                .HasOne(s => s.Product)
+                .WithMany()
+                .HasForeignKey(s => s.ProductId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // SavedItem → StallItem
+            builder.Entity<SavedItem>()
+                .HasOne(s => s.StallItem)
+                .WithMany()
+                .HasForeignKey(s => s.StallItemId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Seed categories
             builder.Entity<Category>().HasData(
-                new Category { Id = 1, Name = "Textbooks & Academics", Descscription = "Academic books and study materials" },
-                new Category { Id = 2, Name = "Electronics & Gadgets", Descscription = "Tech devices and accessories" },
-                new Category { Id = 3, Name = "Dorm Essentials", Descscription = "Everything for campus living" },
-                new Category { Id = 4, Name = "Clothing & Apparel", Descscription = "Campus fashion and merch" },
-                new Category { Id = 5, Name = "Stationery & Supplies", Descscription = "Writing instruments and planners" },
-                new Category { Id = 6, Name = "Food & Beverages", Descscription = "Snacks, drinks and meal items" },
-                new Category { Id = 7, Name = "Other", Descscription = "Miscellaneous items" }
+                new Category { Id = 1, Name = "Textbooks & Academics", Descscription = "Academic books and study materials", Icon = "📚" },
+                new Category { Id = 2, Name = "Electronics & Gadgets", Descscription = "Tech devices and accessories", Icon = "💻" },
+                new Category { Id = 3, Name = "Dorm Essentials", Descscription = "Everything for campus living", Icon = "🛏️" },
+                new Category { Id = 4, Name = "Clothing & Apparel", Descscription = "Campus fashion and merch", Icon = "👕" },
+                new Category { Id = 5, Name = "Stationery & Supplies", Descscription = "Writing instruments and planners", Icon = "✏️" },
+                new Category { Id = 6, Name = "Food & Beverages", Descscription = "Snacks, drinks and meal items", Icon = "🍱" },
+                new Category { Id = 7, Name = "Other", Descscription = "Miscellaneous items", Icon = "📦" }
             );
         }
     }

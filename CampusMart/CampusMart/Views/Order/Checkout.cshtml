@@ -7,11 +7,11 @@
 <div class="cart-container">
     <div class="page-header animate-in">
         <a asp-controller="Cart" asp-action="Index" class="back-btn">←</a>
-        <div><h1 class="page-title">Checkout</h1><p class="page-subtitle">Review your order and confirm payment</p></div>
+        <div><h1 class="page-title">Checkout</h1><p class="page-subtitle">Review your order and confirm purchase</p></div>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 380px;gap:28px;align-items:start;">
-        <!-- Left: Order Items + Shipping -->
+        <!-- Left: Order Items + Options -->
         <div>
             <div class="form-section animate-in d1">
                 <div class="form-section-header">
@@ -27,7 +27,7 @@
                             <div class="checkout-item-name">@item.ProductName</div>
                             <div class="checkout-item-meta">@item.CategoryName · Qty: @item.Quantity</div>
                         </div>
-                        <div class="checkout-item-price">$@((item.Price * item.Quantity).ToString("F2"))</div>
+                        <div class="checkout-item-price">₱@((item.Price * item.Quantity).ToString("F2"))</div>
                     </div>
                 }
             </div>
@@ -35,14 +35,34 @@
             <form asp-controller="Order" asp-action="PlaceOrder" method="post" id="checkoutForm">
                 <div class="form-section animate-in d2">
                     <div class="form-section-header">
-                        <span class="form-section-icon">📍</span>
-                        <h3 class="form-section-title">Delivery Information</h3>
+                        <span class="form-section-icon">🤝</span>
+                        <h3 class="form-section-title">Fulfillment Method</h3>
                     </div>
-                    <div class="form-grid">
-                        <div class="form-group full-width">
-                            <label class="form-label">Delivery Address</label>
-                            <input type="text" class="form-input" name="ShippingAddress" value="@Model.ShippingAddress" placeholder="e.g. Room 301, Engineering Building" required>
-                        </div>
+                    <div class="payment-options">
+                        <label class="payment-option active">
+                            <input type="radio" name="FulfillmentMethod" value="Meet Up" checked>
+                            <div class="payment-option-content">
+                                <span class="payment-icon">📍</span>
+                                <div>
+                                    <div class="payment-name">Meet Up on Campus</div>
+                                    <div class="payment-desc">Arrange a campus meet-up with the seller</div>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="FulfillmentMethod" value="Seller Delivery">
+                            <div class="payment-option-content">
+                                <span class="payment-icon">🚶</span>
+                                <div>
+                                    <div class="payment-name">Seller Delivery</div>
+                                    <div class="payment-desc">Seller delivers to your location on campus</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    <div style="margin-top:16px;">
+                        <label class="form-label">Preferred Location <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+                        <input type="text" class="form-input" name="ShippingAddress" value="@Model.ShippingAddress" placeholder="e.g. Library Lobby, Cafeteria, Room 301 Eng. Bldg.">
                     </div>
                 </div>
 
@@ -53,12 +73,12 @@
                     </div>
                     <div class="payment-options">
                         <label class="payment-option active">
-                            <input type="radio" name="PaymentMethod" value="Cash on Delivery" checked>
+                            <input type="radio" name="PaymentMethod" value="Cash" checked>
                             <div class="payment-option-content">
                                 <span class="payment-icon">💵</span>
                                 <div>
-                                    <div class="payment-name">Cash on Delivery</div>
-                                    <div class="payment-desc">Pay when you receive your items</div>
+                                    <div class="payment-name">Cash</div>
+                                    <div class="payment-desc">Pay with cash upon meet-up</div>
                                 </div>
                             </div>
                         </label>
@@ -88,9 +108,9 @@
                 <div class="form-section animate-in d4">
                     <div class="form-section-header">
                         <span class="form-section-icon">📝</span>
-                        <h3 class="form-section-title">Order Notes</h3>
+                        <h3 class="form-section-title">Notes to Seller</h3>
                     </div>
-                    <textarea class="form-textarea" name="Notes" placeholder="Any special instructions for delivery..." style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:13px 16px;border-radius:10px;color:#fff;font-family:inherit;width:100%;min-height:80px;resize:vertical;box-sizing:border-box;"></textarea>
+                    <textarea class="form-textarea" name="Notes" placeholder="Any message or special request for the seller..." style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:13px 16px;border-radius:10px;color:#fff;font-family:inherit;width:100%;min-height:80px;resize:vertical;box-sizing:border-box;"></textarea>
                 </div>
             </form>
         </div>
@@ -102,22 +122,34 @@
                     <span class="form-section-icon">🧾</span>
                     <h3 class="form-section-title">Price Details</h3>
                 </div>
-                <div class="cart-summary-row"><span>Subtotal (@Model.ItemCount items)</span><span>$@Model.Subtotal.ToString("F2")</span></div>
-                <div class="cart-summary-row"><span>Delivery Fee</span><span style="color:#4ade80;">Free</span></div>
-                <div class="cart-summary-row"><span>Platform Fee</span><span>$0.00</span></div>
-                <div class="cart-summary-row total"><span>Total</span><span>$@Model.Subtotal.ToString("F2")</span></div>
+                <div class="cart-summary-row"><span>Subtotal (@Model.ItemCount items)</span><span>₱@Model.Subtotal.ToString("F2")</span></div>
+                <div class="cart-summary-row"><span>Platform Fee</span><span style="color:#4ade80;">Free</span></div>
+                <div class="cart-summary-row total"><span>Total</span><span>₱@Model.Subtotal.ToString("F2")</span></div>
 
                 <button type="submit" form="checkoutForm" class="btn-checkout" style="margin-top:20px;">
-                    Place Order — $@Model.Subtotal.ToString("F2")
+                    Confirm Purchase — ₱@Model.Subtotal.ToString("F2")
                 </button>
 
                 <div style="text-align:center;margin-top:16px;">
                     <p style="font-size:11px;color:var(--text-muted);line-height:1.5;">
-                        🔒 Your payment is secured and encrypted.<br>
-                        By placing your order, you agree to our Terms of Service.
+                        🎓 Campus Marketplace Transaction<br>
+                        A receipt will be generated after confirmation.
                     </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+    // Toggle active state on payment/fulfillment radio options
+    document.querySelectorAll('.payment-option input[type="radio"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var group = this.closest('.payment-options');
+            group.querySelectorAll('.payment-option').forEach(function(opt) { opt.classList.remove('active'); });
+            this.closest('.payment-option').classList.add('active');
+        });
+    });
+</script>
+}

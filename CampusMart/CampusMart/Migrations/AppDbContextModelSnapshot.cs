@@ -22,6 +22,34 @@ namespace CampusMart.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("CampusMart.Models.Entities.AcademicResource", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AcademicResources");
+                });
+
             modelBuilder.Entity("CampusMart.Models.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -190,6 +218,10 @@ namespace CampusMart.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -204,42 +236,49 @@ namespace CampusMart.Migrations
                         {
                             Id = 1,
                             Descscription = "Academic books and study materials",
+                            Icon = "📚",
                             Name = "Textbooks & Academics"
                         },
                         new
                         {
                             Id = 2,
                             Descscription = "Tech devices and accessories",
+                            Icon = "💻",
                             Name = "Electronics & Gadgets"
                         },
                         new
                         {
                             Id = 3,
                             Descscription = "Everything for campus living",
+                            Icon = "🛏️",
                             Name = "Dorm Essentials"
                         },
                         new
                         {
                             Id = 4,
                             Descscription = "Campus fashion and merch",
+                            Icon = "👕",
                             Name = "Clothing & Apparel"
                         },
                         new
                         {
                             Id = 5,
                             Descscription = "Writing instruments and planners",
+                            Icon = "✏️",
                             Name = "Stationery & Supplies"
                         },
                         new
                         {
                             Id = 6,
                             Descscription = "Snacks, drinks and meal items",
+                            Icon = "🍱",
                             Name = "Food & Beverages"
                         },
                         new
                         {
                             Id = 7,
                             Descscription = "Miscellaneous items",
+                            Icon = "📦",
                             Name = "Other"
                         });
                 });
@@ -386,6 +425,161 @@ namespace CampusMart.Migrations
                     b.HasIndex("SellerId");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("CampusMart.Models.Entities.Rental", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RentalItemId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RentalItemId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Rentals");
+                });
+
+            modelBuilder.Entity("CampusMart.Models.Entities.RentalCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RentalCategories");
+                });
+
+            modelBuilder.Entity("CampusMart.Models.Entities.RentalItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AvailableStock")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<decimal>("PricePerUnit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PriceUnit")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("RentalCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalStock")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RentalCategoryId");
+
+                    b.ToTable("RentalItems");
+                });
+
+            modelBuilder.Entity("CampusMart.Models.Entities.SavedItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StallItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("StallItemId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SavedItems");
                 });
 
             modelBuilder.Entity("CampusMart.Models.Entities.Stall", b =>
@@ -713,6 +907,61 @@ namespace CampusMart.Migrations
                     b.Navigation("Seller");
                 });
 
+            modelBuilder.Entity("CampusMart.Models.Entities.Rental", b =>
+                {
+                    b.HasOne("CampusMart.Models.Entities.RentalItem", "RentalItem")
+                        .WithMany("Rentals")
+                        .HasForeignKey("RentalItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CampusMart.Models.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RentalItem");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CampusMart.Models.Entities.RentalItem", b =>
+                {
+                    b.HasOne("CampusMart.Models.Entities.RentalCategory", "RentalCategory")
+                        .WithMany("RentalItems")
+                        .HasForeignKey("RentalCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RentalCategory");
+                });
+
+            modelBuilder.Entity("CampusMart.Models.Entities.SavedItem", b =>
+                {
+                    b.HasOne("CampusMart.Models.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CampusMart.Models.Entities.StallItem", "StallItem")
+                        .WithMany()
+                        .HasForeignKey("StallItemId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CampusMart.Models.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("StallItem");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CampusMart.Models.Entities.Stall", b =>
                 {
                     b.HasOne("CampusMart.Models.Entities.Floor", "Floor")
@@ -819,6 +1068,16 @@ namespace CampusMart.Migrations
                     b.Navigation("CartItems");
 
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("CampusMart.Models.Entities.RentalCategory", b =>
+                {
+                    b.Navigation("RentalItems");
+                });
+
+            modelBuilder.Entity("CampusMart.Models.Entities.RentalItem", b =>
+                {
+                    b.Navigation("Rentals");
                 });
 
             modelBuilder.Entity("CampusMart.Models.Entities.Stall", b =>

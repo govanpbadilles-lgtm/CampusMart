@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CampusMart.Data;
+using CampusMart.Models.Entities;
+using System.Security.Claims;
 
 namespace CampusMart.Controllers
 {
@@ -48,17 +50,60 @@ namespace CampusMart.Controllers
 
             ViewBag.PeerProducts = peerProducts;
 
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var savedProductIds = await _db.SavedItems
+                .Where(s => s.UserId == userId && s.ProductId != null)
+                .Select(s => s.ProductId.Value)
+                .ToListAsync();
+            
+            ViewBag.SavedProductIds = savedProductIds;
+
             return View("~/Views/UserDashboard/Index.cshtml", stalls);
         }
 
-        public IActionResult Saved()
+        public async Task<IActionResult> Saved()
         {
-            return View("~/Views/UserDashboard/Saved.cshtml");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var savedItems = await _db.SavedItems
+                .Include(s => s.Product)
+                    .ThenInclude(p => p.Seller)
+                .Where(s => s.UserId == userId)
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync();
+
+            return View("~/Views/UserDashboard/Saved.cshtml", savedItems);
         }
 
-        public IActionResult Academic()
+        [HttpPost]
+        public async Task<IActionResult> ToggleSave(int productId)
         {
-            return View("~/Views/UserDashboard/Academic.cshtml");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var existing = await _db.SavedItems.FirstOrDefaultAsync(s => s.UserId == userId && s.ProductId == productId);
+            
+            if (existing != null)
+            {
+                _db.SavedItems.Remove(existing);
+                await _db.SaveChangesAsync();
+                return Json(new { success = true, saved = false });
+            }
+            else
+            {
+                _db.SavedItems.Add(new SavedItem
+                {
+                    UserId = userId,
+                    ProductId = productId
+                });
+                await _db.SaveChangesAsync();
+                return Json(new { success = true, saved = true });
+            }
+        }
+
+        public async Task<IActionResult> Academic()
+        {
+            var resources = await _db.AcademicResources
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+            return View("~/Views/UserDashboard/Academic.cshtml", resources);
         }
     }
 }

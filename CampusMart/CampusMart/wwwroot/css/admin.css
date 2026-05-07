@@ -426,10 +426,10 @@ th {
     background: #14171c;
     border: 1px solid var(--border-subtle);
     border-radius: 16px;
-    padding: 28px;
+    padding: 32px 36px;
     color: #fff;
     width: 100%;
-    max-width: 420px;
+    max-width: 720px;
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
 }
 
@@ -500,6 +500,79 @@ th {
 textarea.modal-input {
     resize: vertical;
     min-height: 60px;
+}
+
+/* ── Wide Modal Form Grid ── */
+.modal-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.modal-form-row.three-col {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.modal-form-row .modal-form-group {
+    margin-bottom: 0;
+}
+
+.modal-form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+/* ── Admin Create Page Form (full-page, not modal) ── */
+.admin-create-form {
+    max-width: 900px;
+    width: 100%;
+}
+
+.admin-create-form .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.admin-create-form .form-grid .full-span {
+    grid-column: 1 / -1;
+}
+
+.admin-create-form label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+}
+
+.admin-create-form input,
+.admin-create-form select,
+.admin-create-form textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border 0.3s;
+    box-sizing: border-box;
+}
+
+.admin-create-form input:focus,
+.admin-create-form select:focus,
+.admin-create-form textarea:focus {
+    border-color: var(--primary);
+}
+
+.admin-create-form select {
+    background: #1a1a1e;
+}
+
+.admin-create-form textarea {
+    resize: vertical;
 }
 
 .btn-save {

@@ -185,7 +185,7 @@ function renderFloorButtons() {
     if (!container) return;
 
     container.innerHTML = floors.map(f => `
-        <button class="floor-btn ${f.id === currentFloorId ? 'active' : ''}" data-id="${f.id}">
+        <button class="floor-btn ${f.id === currentFloorId ? 'active' : ''}" data-id="${f.id}" style="word-break: break-word; white-space: normal; min-height: 40px; padding: 8px 12px;">
             Floor ${f.floorNumber}
         </button>
     `).join('');
@@ -260,6 +260,7 @@ function renderStalls() {
                 <button class="btn" onclick="openEditStall(${s.id})">Edit</button>
                 <button class="btn" onclick="openStallDetail(${s.id})" style="background:rgba(121,231,163,0.12); color:#79e7a3; border-color:rgba(121,231,163,0.3);">Enter</button>
                 <button class="btn warn" onclick="toggleStall(${s.id})">${s.isActive ? 'Deactivate' : 'Activate'}</button>
+                <button class="btn warn" style="background:rgba(255,141,141,0.12); color:#ff8d8d; border-color:rgba(255,141,141,0.3);" onclick="deleteStall(${s.id})">Delete</button>
             </div>
         </article>`;
     }).join('');
@@ -448,6 +449,34 @@ async function toggleStall(id) {
     await loadStalls();
 }
 
+async function deleteStall(id) {
+    const confirmed = await showConfirm('Are you sure you want to delete this stall and all its items?');
+    if (!confirmed) return;
+    
+    const result = await apiFetch(`${API}/stalls/${id}`, { method: 'DELETE' });
+    if (result) {
+        showToast('Stall deleted successfully.', 'success');
+        await loadFloors();
+        await loadStalls();
+    }
+}
+
+async function deleteFloor() {
+    if (!currentFloorId) {
+        showToast('No floor selected to delete.', 'error');
+        return;
+    }
+    const confirmed = await showConfirm('Are you sure you want to delete this floor and all its stalls?');
+    if (!confirmed) return;
+    
+    const result = await apiFetch(`${API}/floors/${currentFloorId}`, { method: 'DELETE' });
+    if (result) {
+        showToast('Floor deleted successfully.', 'success');
+        currentFloorId = null;
+        await loadFloors();
+    }
+}
+
 function openEditStall(id) {
     const stall = stalls.find(s => s.id === id);
     if (!stall) return;
@@ -487,14 +516,17 @@ async function openStallDetail(id) {
     const statusText = stall.isActive ? (open ? 'Open' : 'Closed') : 'Inactive';
 
     document.getElementById('stallDetailContent').innerHTML = `
-        ${stall.imageUrl ? `<img src="${stall.imageUrl}" style="width:100%; max-height:200px; object-fit:cover; border-radius:12px; margin-bottom:16px;">` : ''}
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div><span style="color:var(--text-muted); font-size:12px;">STALL NUMBER</span><br><strong>${stall.stallNumber}</strong></div>
-            <div><span style="color:var(--text-muted); font-size:12px;">OWNER</span><br><strong>${stall.ownerName || '—'}</strong></div>
-            <div><span style="color:var(--text-muted); font-size:12px;">CATEGORY</span><br><span class="pill" style="color:${categoryColor(stall.category)}; border-color:${categoryColor(stall.category)}44; margin-left:0;">${stall.category || 'N/A'}</span></div>
-            <div><span style="color:var(--text-muted); font-size:12px;">STATUS</span><br><span style="color:${statusColor}; font-weight:700;">${statusText}</span></div>
-            <div style="grid-column:1/-1;"><span style="color:var(--text-muted); font-size:12px;">HOURS</span><br><strong>🕐 ${formatTime(stall.openTime)} — ${formatTime(stall.closeTime)}</strong></div>
+        ${stall.imageUrl ? `<img src="${stall.imageUrl}" style="width:100%; max-height:220px; object-fit:cover; border-radius:12px; margin-bottom:16px;">` : ''}
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:16px; background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:20px;">
+            <div><span style="color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">STALL NUMBER</span><br><strong style="font-size:15px;">${stall.stallNumber}</strong></div>
+            <div><span style="color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">OWNER</span><br><strong style="font-size:15px;">${stall.ownerName || '—'}</strong></div>
+            <div><span style="color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">CATEGORY</span><br><span class="pill" style="color:${categoryColor(stall.category)}; border-color:${categoryColor(stall.category)}44; margin-left:0;">${stall.category || 'N/A'}</span></div>
+            <div><span style="color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">STATUS</span><br><span style="color:${statusColor}; font-weight:700; font-size:15px;">${statusText}</span></div>
+        </div>
+        <div style="margin-top:12px; font-size:14px; color:var(--text-muted);">
+            🕐 <strong style="color:#fff;">${formatTime(stall.openTime)} — ${formatTime(stall.closeTime)}</strong>
         </div>`;
+
 
     showModal('stallDetailModal');
     await loadStallItems(id);

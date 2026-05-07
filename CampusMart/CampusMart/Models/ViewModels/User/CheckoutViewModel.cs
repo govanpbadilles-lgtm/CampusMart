@@ -8,6 +8,7 @@ namespace CampusMart.Models.ViewModels.User
 
         public string? ShippingAddress { get; set; }
         public string? PaymentMethod { get; set; }
+        public string? FulfillmentMethod { get; set; }
         public string? Notes { get; set; }
     }
 }

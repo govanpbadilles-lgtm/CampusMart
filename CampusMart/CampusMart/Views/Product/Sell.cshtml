@@ -3,31 +3,221 @@
     Layout = "~/Views/Shared/_UserLayout.cshtml";
 }
 
+<style>
+    .sell-form {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 24px;
+    }
+
+    .upload-zone {
+        background: rgba(255, 255, 255, 0.02);
+        border: 2px dashed var(--border-subtle);
+        border-radius: 12px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+    }
+
+    .upload-zone:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: var(--primary);
+    }
+
+    .upload-icon {
+        font-size: 48px;
+        display: block;
+        margin-bottom: 12px;
+    }
+
+    .upload-text {
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 8px 0;
+    }
+
+    .upload-subtext {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-input,
+    .form-select {
+        width: 100%;
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-subtle);
+        border-radius: 10px;
+        color: #fff;
+        font-family: inherit;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .form-input::placeholder {
+        color: var(--text-muted);
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-subtle);
+        border-radius: 10px;
+        color: #fff;
+        font-family: inherit;
+        font-size: 14px;
+        resize: vertical;
+        min-height: 100px;
+        transition: all 0.2s ease;
+    }
+
+    .form-textarea:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+    }
+
+    .submit-btn {
+        background: linear-gradient(135deg, var(--primary) 0%, #ffed4e 100%);
+        color: #111;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        letter-spacing: 0.5px;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(255, 215, 0, 0.3);
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
+    }
+
+    .form-header {
+        margin-bottom: 32px;
+    }
+
+    .form-title {
+        font-size: 28px;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .form-subtitle {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .upload-previews {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .upload-previews > div {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid var(--border-subtle);
+    }
+
+    .upload-previews img {
+        width: 100%;
+        height: 80px;
+        object-fit: cover;
+        display: block;
+    }
+
+    @@media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+
 <div class="dashboard-container">
     <div id="postListingSection">
         <div class="form-header animate-fade-in">
             <h1 class="form-title">Post a New Listing</h1>
             <p class="form-subtitle">Turn your unused textbooks, gadgets, and campus essentials into cash. Reach thousands of students securely.</p>
         </div>
-        <div class="sell-form animate-fade-in delay-1">
-            <div class="upload-zone">
-                <span class="upload-icon">📸</span>
-                <h3 class="upload-text">Drop images here or click to upload</h3>
-                <p class="upload-subtext">Add up to 5 high-quality photos (JPG, PNG). Max 5MB per file.</p>
-                <input type="file" id="listingImages" style="display:none;" accept="image/*" multiple>
-            </div>
-            <form asp-controller="Product" asp-action="Sell" method="post">
+        <div class="sell-form animate-fade-in">
+            <form asp-controller="Product" asp-action="Sell" method="post" enctype="multipart/form-data">
+                <div class="upload-zone">
+                    <span class="upload-icon">📸</span>
+                    <h3 class="upload-text">Drop images here or click to upload</h3>
+                    <p class="upload-subtext">Add up to 5 high-quality photos (JPG, PNG). Max 5MB per file.</p>
+                    <input type="file" id="listingImages" style="display:none;" accept="image/jpeg,image/png,image/gif,image/webp" multiple>
+                </div>
+
                 <div class="form-group">
-                    <label class="form-label">Item Title</label>
+                    <label class="form-label">Item Title *</label>
                     <input type="text" name="Title" class="form-input" placeholder="e.g. Calculus Early Transcendentals 9th Edition" required>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Price ($)</label>
-                        <input type="number" name="Price" class="form-input" placeholder="0.00" step="0.01" required>
+                        <label class="form-label">Price ($) *</label>
+                        <input type="number" name="Price" class="form-input" placeholder="0.00" step="0.01" min="0" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Category</label>
+                        <label class="form-label">Category *</label>
                         <select name="CategoryId" class="form-select" required>
                             <option value="">Select a category...</option>
                             <option value="1">Textbooks &amp; Academics</option>
@@ -38,55 +228,34 @@
                         </select>
                     </div>
                 </div>
+
                 <div class="form-group">
-                    <label class="form-label">Condition</label>
+                    <label class="form-label">Condition *</label>
                     <select name="Condition" class="form-select" required>
-                        <option>Brand New (Sealed)</option>
-                        <option>Like New (No signs of wear)</option>
-                        <option>Good (Minor wear, fully functional)</option>
-                        <option>Fair (Visible wear, works fine)</option>
+                        <option value="">Select condition...</option>
+                        <option value="Brand New (Sealed)">Brand New (Sealed)</option>
+                        <option value="Like New (No signs of wear)">Like New (No signs of wear)</option>
+                        <option value="Good (Minor wear, fully functional)">Good (Minor wear, fully functional)</option>
+                        <option value="Fair (Visible wear, works fine)">Fair (Visible wear, works fine)</option>
                     </select>
                 </div>
+
                 <div class="form-group">
                     <label class="form-label">Description</label>
                     <textarea name="Description" class="form-textarea" placeholder="Describe the item, note any flaws, and mention what is included..."></textarea>
                 </div>
-                <button type="submit" class="submit-btn">Publish Listing</button>
+
+                <button type="submit" class="submit-btn">📤 Publish Listing</button>
             </form>
         </div>
     </div>
 
-    <div id="activeListingsSection" style="display:none;">
-        <div class="form-header animate-fade-in">
-            <h1 class="form-title">My Active Listings</h1>
-            <p class="form-subtitle">Manage your current listings and view past sales.</p>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div style="background: rgba(121, 231, 163, 0.1); border: 1px solid rgba(121, 231, 163, 0.3); color: #79e7a3; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+            <strong>✓ Success:</strong> @TempData["SuccessMessage"]
         </div>
-        <div class="history-list animate-fade-in delay-1">
-            <div class="history-card">
-                <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=2000&auto=format&fit=crop" alt="Book" class="history-img">
-                <div class="history-details">
-                    <h3 class="history-title">Calculus Early Transcendentals 9th Ed</h3>
-                    <div class="history-meta"><span>Listed: Oct 12, 2023</span><span>Views: 45</span></div>
-                </div>
-                <div class="history-price">$85.00</div>
-                <span class="status-badge status-active">Active</span>
-                <div class="history-actions">
-                    <button class="btn-small">Edit</button>
-                    <button class="btn-small danger">Del</button>
-                </div>
-            </div>
-            <div class="history-card">
-                <img src="https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?q=80&w=2000&auto=format&fit=crop" alt="Laptop" class="history-img">
-                <div class="history-details">
-                    <h3 class="history-title">MacBook Pro M1 2020</h3>
-                    <div class="history-meta"><span>Sold: Sep 05, 2023</span><span>Buyer: Sarah J.</span></div>
-                </div>
-                <div class="history-price">$800.00</div>
-                <span class="status-badge status-sold">Sold</span>
-                <div class="history-actions"><button class="btn-small">View Receipt</button></div>
-            </div>
-        </div>
-    </div>
+    }
 </div>
 
 @section Scripts {

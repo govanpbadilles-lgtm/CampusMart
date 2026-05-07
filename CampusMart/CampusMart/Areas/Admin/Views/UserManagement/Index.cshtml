@@ -64,31 +64,33 @@
 
 <!-- ADD STUDENT MODAL -->
 <div class="modal-overlay" id="addStudentModal" style="display:none;">
-    <div class="profile-modal" style="width:500px; max-height: 90vh; overflow-y: auto;">
+    <div class="profile-modal" style="max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
             <h2 class="modal-title">Create Student Account</h2>
             <button class="close-modal" onclick="closeModal('addStudentModal')">&times;</button>
         </div>
         <form id="addStudentForm" enctype="multipart/form-data">
-            <div style="display:flex; gap:12px;">
-                <div class="modal-form-group" style="flex:1;">
+            <div class="modal-form-row">
+                <div class="modal-form-group">
                     <label class="modal-label">First Name *</label>
                     <input type="text" class="modal-input" id="newFirstName" required>
                 </div>
-                <div class="modal-form-group" style="flex:1;">
+                <div class="modal-form-group">
                     <label class="modal-label">Last Name *</label>
                     <input type="text" class="modal-input" id="newLastName" required>
                 </div>
             </div>
-            <div class="modal-form-group">
-                <label class="modal-label">Student ID *</label>
-                <input type="text" class="modal-input" id="newStudentId" required>
+            <div class="modal-form-row" style="margin-top:14px;">
+                <div class="modal-form-group">
+                    <label class="modal-label">Student ID *</label>
+                    <input type="text" class="modal-input" id="newStudentId" required>
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-label">Email Address *</label>
+                    <input type="email" class="modal-input" id="newEmail" required>
+                </div>
             </div>
-            <div class="modal-form-group">
-                <label class="modal-label">Email Address *</label>
-                <input type="email" class="modal-input" id="newEmail" required>
-            </div>
-            <div class="modal-form-group">
+            <div class="modal-form-group" style="margin-top:14px;">
                 <label class="modal-label">Profile Picture (Optional)</label>
                 <input type="file" class="modal-input" id="newAvatar" accept="image/*" style="padding: 8px;">
                 <div id="newAvatarPreview" style="margin-top:8px;"></div>
@@ -96,14 +98,14 @@
             <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted); line-height: 1.5;">
                 <strong>Note:</strong> The default password will be set to <code style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px;">CampusMart123!</code>. The student should log in and change it.
             </div>
-            <button type="submit" class="btn-save" style="width:100%; margin-top: 16px;" id="saveStudentBtn">Create Account</button>
+            <button type="submit" class="btn-save" style="width:100%; margin-top: 20px;" id="saveStudentBtn">Create Account</button>
         </form>
     </div>
 </div>
 
 <!-- VIEW STUDENT MODAL -->
 <div class="modal-overlay" id="viewStudentModal" style="display:none;">
-    <div class="profile-modal" style="width:450px;">
+    <div class="profile-modal">
         <div class="modal-header">
             <h2 class="modal-title">Student Profile</h2>
             <button class="close-modal" onclick="closeModal('viewStudentModal')">&times;</button>
@@ -116,37 +118,39 @@
 
 <!-- EDIT STUDENT MODAL -->
 <div class="modal-overlay" id="editStudentModal" style="display:none;">
-    <div class="profile-modal" style="width:500px; max-height: 90vh; overflow-y: auto;">
+    <div class="profile-modal" style="max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
             <h2 class="modal-title">Edit Student Account</h2>
             <button class="close-modal" onclick="closeModal('editStudentModal')">&times;</button>
         </div>
         <form id="editStudentForm" enctype="multipart/form-data">
             <input type="hidden" id="editStudentIdHidden" />
-            <div style="display:flex; gap:12px;">
-                <div class="modal-form-group" style="flex:1;">
+            <div class="modal-form-row">
+                <div class="modal-form-group">
                     <label class="modal-label">First Name *</label>
                     <input type="text" class="modal-input" id="editFirstName" required>
                 </div>
-                <div class="modal-form-group" style="flex:1;">
+                <div class="modal-form-group">
                     <label class="modal-label">Last Name *</label>
                     <input type="text" class="modal-input" id="editLastName" required>
                 </div>
             </div>
-            <div class="modal-form-group">
-                <label class="modal-label">Student ID *</label>
-                <input type="text" class="modal-input" id="editStudentId" required>
+            <div class="modal-form-row" style="margin-top:14px;">
+                <div class="modal-form-group">
+                    <label class="modal-label">Student ID *</label>
+                    <input type="text" class="modal-input" id="editStudentId" required>
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-label">Email Address *</label>
+                    <input type="email" class="modal-input" id="editEmail" required>
+                </div>
             </div>
-            <div class="modal-form-group">
-                <label class="modal-label">Email Address *</label>
-                <input type="email" class="modal-input" id="editEmail" required>
-            </div>
-            <div class="modal-form-group">
+            <div class="modal-form-group" style="margin-top:14px;">
                 <label class="modal-label">Update Profile Picture</label>
                 <input type="file" class="modal-input" id="editAvatar" accept="image/*" style="padding: 8px;">
                 <div id="editAvatarPreview" style="margin-top:8px;"></div>
             </div>
-            <button type="submit" class="btn-save" style="width:100%; margin-top: 16px;" id="updateStudentBtn">Save Changes</button>
+            <button type="submit" class="btn-save" style="width:100%; margin-top: 20px;" id="updateStudentBtn">Save Changes</button>
         </form>
     </div>
 </div>

@@ -1,0 +1,38 @@
+@{
+    ViewData["Title"] = "Create Academic Post";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="dashboard-container">
+    <div class="form-header animate-fade-in" style="margin-bottom: 24px;">
+        <h1 class="form-title">Create Academic Post</h1>
+        <p class="form-subtitle">Publish new academic notices, resources, or requirements for students.</p>
+    </div>
+
+    <div class="admin-create-form animate-fade-in delay-1" style="background: rgba(255, 255, 255, 0.02); padding: 32px; border-radius: 12px; border: 1px solid var(--border-subtle);">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <div class="form-grid">
+                
+                <div class="modal-form-group full-span">
+                    <label>Post Title</label>
+                    <input type="text" name="title" required placeholder="e.g. Midterm Requirements" />
+                </div>
+
+                <div class="modal-form-group full-span">
+                    <label>Description</label>
+                    <textarea name="description" rows="6" required placeholder="Detailed information about the academic need..."></textarea>
+                </div>
+
+                <div class="modal-form-group full-span">
+                    <label>Upload Image (Optional)</label>
+                    <input type="file" name="imageFile" accept="image/*" style="padding: 10px;" />
+                </div>
+
+                <div class="full-span" style="display: flex; gap: 16px; margin-top: 24px;">
+                    <button type="submit" class="btn-save" style="padding: 12px 32px;">Post Academic</button>
+                    <a asp-action="Index" class="btn-outline" style="text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 12px 24px;">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

@@ -59,7 +59,7 @@ namespace CampusMart.Controllers
             return View(model);
         }
 
-        // Order Detail
+        // Order Detail / Receipt
         public async Task<IActionResult> Details(int id)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -112,7 +112,10 @@ namespace CampusMart.Controllers
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
             if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
+            {
+                TempData["ErrorMessage"] = "Your cart is empty.";
                 return RedirectToAction("Index", "Cart");
+            }
 
             var model = new CheckoutViewModel
             {
@@ -127,13 +130,13 @@ namespace CampusMart.Controllers
                     Quantity = ci.Quantity,
                     CategoryName = ci.Product?.Category?.Name ?? "Stall Item"
                 }).ToList(),
-                ShippingAddress = user.Address ?? ""
+                ShippingAddress = ""
             };
 
             return View(model);
         }
 
-        // Checkout POST - place order
+        // Checkout POST - place order (campus purchase - receipt based)
         [HttpPost]
         public async Task<IActionResult> PlaceOrder(CheckoutViewModel model)
         {
@@ -148,15 +151,39 @@ namespace CampusMart.Controllers
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
             if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
+            {
+                TempData["ErrorMessage"] = "Your cart is empty.";
                 return RedirectToAction("Index", "Cart");
+            }
+
+            // Validate stock availability before placing order
+            foreach (var ci in cart.CartItems)
+            {
+                if (ci.Product != null && ci.Product.Stock < ci.Quantity)
+                {
+                    TempData["ErrorMessage"] = $"Insufficient stock for {ci.Product.Name}. Only {ci.Product.Stock} available.";
+                    return RedirectToAction("Checkout");
+                }
+                if (ci.StallItem != null && ci.StallItem.Stock < ci.Quantity)
+                {
+                    TempData["ErrorMessage"] = $"Insufficient stock for {ci.StallItem.Name}. Only {ci.StallItem.Stock} available.";
+                    return RedirectToAction("Checkout");
+                }
+            }
+
+            // Build location info from fulfillment method + location
+            var fulfillment = model.FulfillmentMethod ?? "Meet Up";
+            var location = string.IsNullOrWhiteSpace(model.ShippingAddress)
+                ? fulfillment
+                : $"{fulfillment} — {model.ShippingAddress}";
 
             var order = new Order
             {
                 UserId = user.Id,
-                Status = "Completed",
+                Status = "Confirmed",
                 TotalAmount = (int)cart.CartItems.Sum(ci => (ci.Product?.Price ?? ci.StallItem?.Price ?? 0) * ci.Quantity),
-                ShippingAddress = model.ShippingAddress,
-                PaymentMethod = model.PaymentMethod ?? "Cash on Delivery",
+                ShippingAddress = location,
+                PaymentMethod = model.PaymentMethod ?? "Cash",
                 CreatedAt = DateTime.UtcNow,
                 OrderItems = cart.CartItems.Select(ci => new OrderItem
                 {
@@ -167,10 +194,24 @@ namespace CampusMart.Controllers
                 }).ToList()
             };
 
+            // Deduct stock for each item
+            foreach (var ci in cart.CartItems)
+            {
+                if (ci.Product != null)
+                {
+                    ci.Product.Stock -= ci.Quantity;
+                }
+                if (ci.StallItem != null)
+                {
+                    ci.StallItem.Stock -= ci.Quantity;
+                }
+            }
+
             _db.Orders.Add(order);
             _db.CartItems.RemoveRange(cart.CartItems);
             await _db.SaveChangesAsync();
 
+            TempData["SuccessMessage"] = "Purchase confirmed! Your receipt has been generated.";
             return RedirectToAction("Details", new { id = order.Id });
         }
     }

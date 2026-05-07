@@ -158,6 +158,7 @@
     <div class="stalls-grid animate-fade-in delay-2">
         @{
             var peerProducts = ViewBag.PeerProducts as List<CampusMart.Models.Entities.Product> ?? new List<CampusMart.Models.Entities.Product>();
+            var savedProductIds = ViewBag.SavedProductIds as List<int> ?? new List<int>();
         }
         
         @if (peerProducts.Any())
@@ -197,10 +198,16 @@
                                 <span style="font-size:12px; color:#fff;">@prod.Seller?.FirstName</span>
                             </div>
                             
-                            <form asp-controller="Cart" asp-action="AddToCart" method="post">
-                                <input type="hidden" name="productId" value="@prod.Id" />
-                                <button type="submit" class="btn" style="background:#3b82f6; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer; font-size:12px;">Add to Cart</button>
-                            </form>
+                            <div style="display: flex; gap: 8px;">
+                                @{ var isSaved = savedProductIds.Contains(prod.Id); }
+                                <button type="button" class="btn btn-save-toggle" data-id="@prod.Id" style="background: @(isSaved ? "var(--primary)" : "rgba(255,255,255,0.05)"); color: @(isSaved ? "#000" : "#fff"); border:none; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer; font-size:12px; transition: all 0.2s;">
+                                    @(isSaved ? "Saved" : "Save")
+                                </button>
+                                <form asp-controller="Cart" asp-action="AddToCart" method="post" style="margin: 0;">
+                                    <input type="hidden" name="productId" value="@prod.Id" />
+                                    <button type="submit" class="btn" style="background:#3b82f6; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer; font-size:12px;">Add to Cart</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -248,5 +255,36 @@
                 listBtn.classList.remove('active');
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.btn-save-toggle').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const productId = btn.getAttribute('data-id');
+                    try {
+                        const response = await fetch('/UserDashboard/ToggleSave', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: `productId=${productId}`
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            if (result.saved) {
+                                btn.textContent = 'Saved';
+                                btn.style.background = 'var(--primary)';
+                                btn.style.color = '#000';
+                            } else {
+                                btn.textContent = 'Save';
+                                btn.style.background = 'rgba(255,255,255,0.05)';
+                                btn.style.color = '#fff';
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error toggling save status:', error);
+                    }
+                });
+            });
+        });
     </script>
 }

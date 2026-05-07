@@ -1,3 +1,4 @@
+@model CampusMart.Models.ViewModels.User.RentalPageViewModel
 @{
     ViewData["Title"] = "Rentals";
     Layout = "~/Views/Shared/_UserLayout.cshtml";
@@ -6,76 +7,240 @@
 <div class="dashboard-container">
     <p class="welcome-text animate-fade-in">Premium access to essential academic tools, high-end laboratory equipment, and exclusive campus spaces.</p>
 
+    <!-- ═══ MY ACTIVE RENTALS ═══ -->
     <div class="section-header animate-fade-in delay-1">
         <h2 class="section-title">My Active Rentals</h2>
-        <a href="#" class="view-all">VIEW ALL STATUS</a>
+        <a href="#allEquipment" class="view-all">BROWSE ITEMS</a>
     </div>
 
     <div class="rentals-grid animate-fade-in delay-1">
-        <div class="rental-card">
-            <div class="more-icon"><div class="more-dot"></div><div class="more-dot"></div><div class="more-dot"></div></div>
-            <span class="rental-badge">DUE IN 3 DAYS</span>
-            <div><h3 class="rental-title">Premium Locker #402</h3><p class="rental-sub">Engineering Hall, Level 2</p></div>
-            <div class="rental-meta"><div class="access-type"><div class="access-icon">🔑</div> Digital Key</div></div>
-        </div>
-        <div class="rental-card">
-            <div class="more-icon"><div class="more-dot"></div><div class="more-dot"></div><div class="more-dot"></div></div>
-            <span class="rental-badge" style="color:var(--text-muted);background:rgba(255,255,255,.05);border:1px solid var(--border-subtle)">SESSION ENDS 2:00 PM</span>
-            <div><h3 class="rental-title">Mass Spectrometer</h3><p class="rental-sub">Chemistry Lab B</p></div>
-            <div class="progress-bar"><div class="progress-fill"></div></div>
-        </div>
-        <div class="rental-card new-booking-card">
+        @if (Model.UserActiveRentals.Any())
+        {
+            @foreach (var rental in Model.UserActiveRentals)
+            {
+                var daysLeft = (rental.EndDate - DateTime.UtcNow).TotalDays;
+                var totalDays = (rental.EndDate - rental.StartDate).TotalDays;
+                var progress = totalDays > 0 ? Math.Min(100, ((totalDays - daysLeft) / totalDays) * 100) : 100;
+                var badgeText = daysLeft <= 0 ? "OVERDUE" : daysLeft <= 1 ? "DUE TODAY" : $"DUE IN {(int)Math.Ceiling(daysLeft)} DAYS";
+                var badgeStyle = daysLeft <= 1 ? "color:#ff6b6b; background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.2)" : "";
+
+                <div class="rental-card">
+                    <div class="more-icon"><div class="more-dot"></div><div class="more-dot"></div><div class="more-dot"></div></div>
+                    <span class="rental-badge" style="@badgeStyle">@badgeText</span>
+                    <div>
+                        <h3 class="rental-title">@rental.RentalItem?.Name</h3>
+                        <p class="rental-sub">@rental.RentalItem?.Location</p>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text-muted);">
+                        <span>@rental.StartDate.ToString("MMM dd") → @rental.EndDate.ToString("MMM dd")</span>
+                        <span style="color:var(--primary); font-weight:700;">₱@rental.TotalPrice.ToString("0.00")</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:@((int)progress)%"></div></div>
+                    <form asp-controller="Product" asp-action="ReturnRental" method="post" style="margin-top:4px;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="rentalId" value="@rental.Id" />
+                        <button type="submit" style="width:100%; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer; transition:.3s; text-transform:uppercase; letter-spacing:0.5px;"
+                                onmouseover="this.style.borderColor='#79e7a3'; this.style.color='#79e7a3'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='#fff'">
+                            Return Item
+                        </button>
+                    </form>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="rental-card" style="border:1px dashed var(--border-subtle); background:rgba(255,255,255,0.02);">
+                <div style="text-align:center; padding:12px 0;">
+                    <div style="font-size:28px; margin-bottom:8px;">📋</div>
+                    <h3 class="rental-title" style="font-size:14px;">No Active Rentals</h3>
+                    <p class="rental-sub" style="font-size:12px;">Browse items below to rent something!</p>
+                </div>
+            </div>
+        }
+
+        <a href="#allEquipment" class="rental-card new-booking-card" style="text-decoration:none;">
             <div class="new-icon">⊕</div>
-            <div><h3 class="new-title">New Booking</h3><p class="new-sub">Explore available spaces</p></div>
-        </div>
+            <div><h3 class="new-title">New Booking</h3><p class="new-sub">Explore available items</p></div>
+        </a>
     </div>
 
-    <div class="animate-fade-in delay-2"><span class="filter-pill">All Equipment</span></div>
+    <!-- ═══ CATEGORY FILTER PILLS ═══ -->
+    <div class="animate-fade-in delay-2" id="allEquipment" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px;">
+        <a asp-controller="Product" asp-action="Index"
+           class="filter-pill" style="text-decoration:none; @(Model.SelectedCategoryId == null ? "" : "background:rgba(255,255,255,0.05); color:var(--text-muted); box-shadow:none; border:1px solid var(--border-subtle);")">
+            All Equipment
+        </a>
+        @foreach (var cat in Model.Categories)
+        {
+            var isActive = Model.SelectedCategoryId == cat.Id;
+            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="@cat.Id"
+               class="filter-pill" style="text-decoration:none; @(isActive ? "" : "background:rgba(255,255,255,0.05); color:var(--text-muted); box-shadow:none; border:1px solid var(--border-subtle);")">
+                @cat.Icon @cat.Name
+            </a>
+        }
+    </div>
 
-    <div class="equipment-grid animate-fade-in delay-2">
-        <div class="eq-card">
-            <div class="eq-img-container">
-                <img src="https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?q=80&w=2070&auto=format&fit=crop" alt="Microscope">
-                <span class="eq-badge">SCIENCE</span>
-            </div>
-            <div class="eq-content">
-                <div class="eq-header"><h3 class="eq-title">Nikon ECLIPSE<br>Ti2</h3><div class="eq-price">$45<span>/hr</span></div></div>
-                <p class="eq-desc">High-performance inverted research microscope system.</p>
-                <button class="btn-rent">Rent Now</button>
-            </div>
+    <!-- ═══ RENTAL ITEMS GRID ═══ -->
+    @if (Model.AvailableItems.Any())
+    {
+        <div class="equipment-grid animate-fade-in delay-2">
+            @foreach (var item in Model.AvailableItems)
+            {
+                var isAvailable = item.AvailableStock > 0;
+                <div class="eq-card" style="@(isAvailable ? "" : "opacity:0.5;")">
+                    <div class="eq-img-container">
+                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                        {
+                            <img src="@item.ImageUrl" alt="@item.Name">
+                        }
+                        else
+                        {
+                            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:48px; background:#1a1a1e;">@item.RentalCategory?.Icon</div>
+                        }
+                        <span class="eq-badge">@item.RentalCategory?.Name?.ToUpper()</span>
+                    </div>
+                    <div class="eq-content">
+                        <div class="eq-header">
+                            <h3 class="eq-title">@item.Name</h3>
+                            <div class="eq-price">₱@item.PricePerUnit.ToString("0")<span>/@item.PriceUnit</span></div>
+                        </div>
+                        <p class="eq-desc">@(item.Description ?? item.Location ?? "Available for rent.")</p>
+                        @if (!string.IsNullOrEmpty(item.Location))
+                        {
+                            <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">📍 @item.Location</div>
+                        }
+                        <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">
+                            @(isAvailable ? $"{item.AvailableStock} of {item.TotalStock} available" : "Out of stock")
+                        </div>
+
+                        @if (isAvailable)
+                        {
+                            <button type="button" class="btn-rent" onclick="openRentModal(@item.Id, '@item.Name.Replace("'", "\\'")', @item.PricePerUnit.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture), '@item.PriceUnit')">
+                                Rent Now
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn-rent" disabled style="background:#444; cursor:not-allowed;">Unavailable</button>
+                        }
+                    </div>
+                </div>
+            }
         </div>
-        <div class="eq-card">
-            <div class="eq-img-container">
-                <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop" alt="Meeting Room">
-                <span class="eq-badge">SPACES</span>
-            </div>
-            <div class="eq-content">
-                <div class="eq-header"><h3 class="eq-title">Skyline Suite<br>4A</h3><div class="eq-price">$120<span>/day</span></div></div>
-                <p class="eq-desc">Private study lounge with panoramic campus views.</p>
-                <button class="btn-rent">Rent Now</button>
-            </div>
+    }
+    else
+    {
+        <div style="text-align:center; padding:60px 20px; color:var(--text-muted);">
+            <div style="font-size:48px; margin-bottom:12px;">🔍</div>
+            <div style="font-size:16px; font-weight:600; color:#fff; margin-bottom:6px;">No rental items found</div>
+            <div style="font-size:13px;">Check back later — the admin is setting up new items.</div>
         </div>
-        <div class="eq-card">
-            <div class="eq-img-container">
-                <img src="https://images.unsplash.com/photo-1580584126903-c17d41830450?q=80&w=1939&auto=format&fit=crop" alt="Lockers">
-                <span class="eq-badge">STORAGE</span>
+    }
+</div>
+
+<!-- ═══ RENT MODAL ═══ -->
+<div id="rentModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#1a1a1e; border:1px solid var(--border-subtle); border-radius:16px; padding:32px; max-width:420px; width:90%; position:relative; box-shadow:0 25px 60px rgba(0,0,0,.6);">
+        <button type="button" onclick="closeRentModal()" style="position:absolute; top:16px; right:16px; background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">&times;</button>
+        
+        <h3 style="color:#fff; font-size:18px; font-weight:700; margin-bottom:4px;">🔑 Rent Item</h3>
+        <p id="rentItemTitle" style="color:var(--primary); font-size:14px; font-weight:600; margin-bottom:24px;"></p>
+
+        <form asp-controller="Product" asp-action="Rent" method="post" id="rentForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="rentalItemId" id="rentItemId" />
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; font-weight:700; color:#fff; margin-bottom:6px;">Start Date</label>
+                <input type="date" name="startDate" id="rentStartDate" required
+                       style="width:100%; padding:12px 16px; background:rgba(255,255,255,0.05); border:1px solid var(--border-subtle); border-radius:10px; color:#fff; font-size:14px; outline:none;"
+                       onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border-subtle)'" />
             </div>
-            <div class="eq-content">
-                <div class="eq-header"><h3 class="eq-title">Elite Storage<br>Pod</h3><div class="eq-price">$15<span>/mo</span></div></div>
-                <p class="eq-desc">Climate controlled, biometric access, and 24/7 security.</p>
-                <button class="btn-rent">Rent Now</button>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; font-weight:700; color:#fff; margin-bottom:6px;">End Date</label>
+                <input type="date" name="endDate" id="rentEndDate" required
+                       style="width:100%; padding:12px 16px; background:rgba(255,255,255,0.05); border:1px solid var(--border-subtle); border-radius:10px; color:#fff; font-size:14px; outline:none;"
+                       onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border-subtle)'" />
             </div>
-        </div>
-        <div class="eq-card">
-            <div class="eq-img-container">
-                <img src="https://images.unsplash.com/photo-1600861194942-f883de0dfe96?q=80&w=2069&auto=format&fit=crop" alt="Workstation">
-                <span class="eq-badge">MEDIA</span>
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-size:13px; font-weight:700; color:#fff; margin-bottom:6px;">Notes (optional)</label>
+                <textarea name="notes" rows="2"
+                          style="width:100%; padding:12px 16px; background:rgba(255,255,255,0.05); border:1px solid var(--border-subtle); border-radius:10px; color:#fff; font-size:14px; outline:none; resize:vertical;"
+                          placeholder="Any special requirements..."></textarea>
             </div>
-            <div class="eq-content">
-                <div class="eq-header"><h3 class="eq-title">VFX<br>Workstation</h3><div class="eq-price">$30<span>/hr</span></div></div>
-                <p class="eq-desc">RTX 4090 equipped studio rig for 3D rendering.</p>
-                <button class="btn-rent">Rent Now</button>
+
+            <div id="priceEstimate" style="background:rgba(255,215,0,0.05); border:1px solid rgba(255,215,0,0.15); border-radius:10px; padding:12px 16px; margin-bottom:20px; display:none;">
+                <span style="font-size:12px; color:var(--text-muted);">Estimated Total:</span>
+                <span id="priceEstimateValue" style="font-size:18px; font-weight:800; color:var(--primary); margin-left:8px;"></span>
             </div>
-        </div>
+
+            <button type="submit" class="btn-rent" style="width:100%; font-size:14px; padding:14px;">
+                Confirm Rental
+            </button>
+        </form>
     </div>
 </div>
+
+@section Scripts {
+<script>
+    let currentPrice = 0;
+    let currentUnit = 'day';
+
+    function openRentModal(id, name, price, unit) {
+        document.getElementById('rentItemId').value = id;
+        document.getElementById('rentItemTitle').textContent = name;
+        currentPrice = price;
+        currentUnit = unit;
+
+        // Default dates
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('rentStartDate').value = today.toISOString().split('T')[0];
+        document.getElementById('rentStartDate').min = today.toISOString().split('T')[0];
+        document.getElementById('rentEndDate').value = tomorrow.toISOString().split('T')[0];
+        document.getElementById('rentEndDate').min = tomorrow.toISOString().split('T')[0];
+
+        document.getElementById('rentModal').style.display = 'flex';
+        calculatePrice();
+    }
+
+    function closeRentModal() {
+        document.getElementById('rentModal').style.display = 'none';
+    }
+
+    function calculatePrice() {
+        const start = new Date(document.getElementById('rentStartDate').value);
+        const end = new Date(document.getElementById('rentEndDate').value);
+        if (isNaN(start) || isNaN(end) || end <= start) {
+            document.getElementById('priceEstimate').style.display = 'none';
+            return;
+        }
+        const diffMs = end - start;
+        const diffHours = diffMs / (1000 * 60 * 60);
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+        let total = 0;
+        switch (currentUnit) {
+            case 'hr': total = currentPrice * diffHours; break;
+            case 'day': total = currentPrice * Math.ceil(diffDays); break;
+            case 'week': total = currentPrice * Math.ceil(diffDays / 7); break;
+            case 'mo': total = currentPrice * Math.ceil(diffDays / 30); break;
+            default: total = currentPrice * Math.ceil(diffDays);
+        }
+        document.getElementById('priceEstimateValue').textContent = '₱' + total.toFixed(2);
+        document.getElementById('priceEstimate').style.display = 'block';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const sd = document.getElementById('rentStartDate');
+        const ed = document.getElementById('rentEndDate');
+        if (sd) sd.addEventListener('change', calculatePrice);
+        if (ed) ed.addEventListener('change', calculatePrice);
+
+        // Close modal on overlay click
+        document.getElementById('rentModal')?.addEventListener('click', function (e) {
+            if (e.target === this) closeRentModal();
+        });
+    });
+</script>
+}

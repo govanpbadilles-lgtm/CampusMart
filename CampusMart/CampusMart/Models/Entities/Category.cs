@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace CampusMart.Models.Entities
 {
@@ -12,6 +12,8 @@ namespace CampusMart.Models.Entities
         [Required]
         [StringLength(100, MinimumLength = 10)]
         public string Name { get; set; }
+
+        public string Icon { get; set; } // Added Icon property
 
         public string Descscription { get; set; }
 
