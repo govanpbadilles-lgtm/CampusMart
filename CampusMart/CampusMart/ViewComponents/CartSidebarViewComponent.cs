@@ -29,7 +29,7 @@ namespace CampusMart.ViewComponents
             var cart = await _db.Carts
                 .Include(c => c.CartItems)
                     .ThenInclude(ci => ci.Product)
-                        .ThenInclude(p => p.Category)
+                        .ThenInclude(p => p!.Category)
                 .Include(c => c.CartItems)
                     .ThenInclude(ci => ci.StallItem)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
@@ -46,7 +46,7 @@ namespace CampusMart.ViewComponents
                     ImageUrl = ci.Product?.ImageUrl ?? ci.StallItem?.ImageUrl,
                     Price = ci.Product?.Price ?? ci.StallItem?.Price ?? 0,
                     Quantity = ci.Quantity,
-                    CategoryName = ci.Product?.Category?.Name ?? "Stall Item"
+                    CategoryName = ci.Product != null && ci.Product.Category != null ? ci.Product.Category.Name : "Stall Item"
                 }).ToList();
             }
 
