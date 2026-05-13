@@ -44,7 +44,7 @@
                     </button>
                     <button id="notificationToggleBtn" class="nav-icon-link" title="Notifications">
                         <i class="bi bi-bell-fill"></i>
-                        <span class="notify-dot"></span>
+                        <span class="notify-dot" id="userNotifyDot" style="display:none;"></span>
                     </button>
                     <div class="vr mx-2 opacity-10"></div>
                     <div class="dropdown">
@@ -128,15 +128,19 @@
     <div class="notification-sidebar-wrapper" id="notificationSidebar">
         <div class="notification-header">
             <div>
-                <h2 class="fs-5 fw-800 text-white mb-0"><i class="bi bi-bell-fill text-warning"></i> System Alerts</h2>
+                <h2 class="fs-5 fw-800 text-white mb-0"><i class="bi bi-bell-fill text-warning"></i> Notifications</h2>
                 <p class="x-small text-muted mb-0">Real-time campus updates</p>
             </div>
             <button class="close-modal" id="closeNotificationBtn">&times;</button>
         </div>
-        <div class="notification-body p-4">
-            <div class="empty-state text-center py-5 opacity-50">
-                <i class="bi bi-bell-slash fs-1 mb-3 d-block"></i>
-                <p class="small">No new notifications</p>
+        <div class="notification-actions-user">
+            <button class="mark-read-btn-user" id="markAllReadBtnUser">
+                <i class="bi bi-check-all"></i> Mark all as read
+            </button>
+        </div>
+        <div class="notification-list-user" id="userNotificationList">
+            <div class="notification-loading-user">
+                <i class="bi bi-arrow-clockwise spin-user"></i> Loading...
             </div>
         </div>
     </div>

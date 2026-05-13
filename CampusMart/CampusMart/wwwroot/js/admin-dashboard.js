@@ -20,6 +20,89 @@ function closeModal(modalId) {
     }
 }
 
+// ── Admin Notification System ──
+function loadNotifications() {
+    const notificationList = document.getElementById('notificationList');
+    const notifyBadge = document.getElementById('navNotifyBadge');
+
+    if (!notificationList) return;
+
+    // Show loading state
+    notificationList.innerHTML = `
+        <div class="notification-loading">
+            <i class="bi bi-arrow-clockwise spin"></i> Loading...
+        </div>`;
+
+    fetch('/Admin/NotificationApi/GetAdminNotifications')
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to load');
+            return res.json();
+        })
+        .then(data => {
+            const { notifications, unreadCount } = data;
+
+            // Update badge
+            if (notifyBadge) {
+                if (unreadCount > 0) {
+                    notifyBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    notifyBadge.style.display = 'flex';
+                } else {
+                    notifyBadge.style.display = 'none';
+                }
+            }
+
+            // Render notifications
+            if (!notifications || notifications.length === 0) {
+                notificationList.innerHTML = `
+                    <div class="notification-empty">
+                        <i class="bi bi-bell-slash d-block"></i>
+                        <p class="mt-3">No notifications yet</p>
+                        <p class="small" style="color: var(--text-dim);">System alerts will appear here when there's activity.</p>
+                    </div>`;
+                return;
+            }
+
+            notificationList.innerHTML = notifications.map(n => `
+                <div class="notification-item ${n.unread ? 'unread' : ''}" data-id="${n.id}">
+                    <div class="notification-icon" style="background: ${n.iconBg}; color: ${n.iconColor};">
+                        <i class="bi ${n.icon}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <p class="notification-heading">${n.title}</p>
+                        <p class="notification-message">${n.message}</p>
+                        <div class="notification-meta">
+                            <i class="bi bi-clock"></i> ${n.time}
+                            ${n.unread ? '<span class="notification-badge-dot"></span>' : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        })
+        .catch(err => {
+            console.error('Notification load error:', err);
+            notificationList.innerHTML = `
+                <div class="notification-empty">
+                    <i class="bi bi-wifi-off d-block"></i>
+                    <p class="mt-3">Couldn't load notifications</p>
+                    <button class="mark-read-btn mt-2" onclick="loadNotifications()">
+                        <i class="bi bi-arrow-clockwise"></i> Retry
+                    </button>
+                </div>`;
+        });
+}
+
+function markAllNotificationsRead() {
+    const items = document.querySelectorAll('.notification-item.unread');
+    items.forEach(item => item.classList.remove('unread'));
+
+    const notifyBadge = document.getElementById('navNotifyBadge');
+    if (notifyBadge) notifyBadge.style.display = 'none';
+
+    if (typeof showToast === 'function') {
+        showToast('All notifications marked as read', 'success');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // 1. Sidebar Toggle Logic
     const sidebar = document.querySelector('.admin-sidebar');
@@ -67,7 +150,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const notificationSidebar = document.getElementById('notificationSidebar');
     const notificationOverlay = document.getElementById('notificationOverlay');
     const closeNotificationSidebar = document.getElementById('closeNotificationSidebar');
-    const notifyBadge = document.getElementById('navNotifyBadge');
 
     if (notificationBtn && notificationSidebar) {
         notificationBtn.addEventListener('click', () => {
@@ -92,6 +174,12 @@ document.addEventListener('DOMContentLoaded', function () {
             notificationOverlay.classList.remove('active');
             document.body.style.overflow = '';
         });
+    }
+
+    // Mark all as read button
+    const markAllReadBtn = document.getElementById('markAllReadBtn');
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', markAllNotificationsRead);
     }
 
     // 3. Global Modal Click-to-Close
@@ -180,4 +268,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
+
+    // 5. Load initial notification badge count on page load
+    loadNotifications();
 });

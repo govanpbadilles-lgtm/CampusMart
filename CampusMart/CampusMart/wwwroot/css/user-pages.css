@@ -11,9 +11,7 @@
     line-height: 1.1;
     color: white;
     text-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    background: linear-gradient(to right, #ffffff, #ffd700);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffffff;
 }
 
 .header-stats-grid {
@@ -208,13 +206,23 @@
 }
 
 .elite-qty-selector input {
-    width: 44px;
+    width: 50px;
     background: transparent;
     border: none;
-    color: white;
+    color: #ffffff !important;
     text-align: center;
     font-weight: 800;
-    font-size: 16px;
+    font-size: 18px;
+    -moz-appearance: textfield;
+    appearance: textfield;
+    line-height: 1;
+    padding: 0;
+}
+
+.elite-qty-selector input::-webkit-outer-spin-button,
+.elite-qty-selector input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .product-purchase-box {
@@ -248,22 +256,22 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 18px;
 }
 
 .btn-save-circle:hover {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: #f87171;
-    color: #f87171;
+    background: rgba(255, 215, 0, 0.1);
+    border-color: #ffd700;
+    color: #ffd700;
     transform: translateY(-2px);
 }
 
 .btn-save-circle.active {
-    background: #ef4444;
-    border-color: #ef4444;
-    color: white;
-    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+    background: rgba(255, 215, 0, 0.15);
+    border-color: #ffd700;
+    color: #ffd700;
+    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.2);
 }
 
 /* ── List View Modifier ── */
@@ -480,7 +488,7 @@
     box-shadow: 0 10px 28px rgba(255, 193, 7, 0.35);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-. receipt-print-btn:hover {
+.receipt-print-btn:hover {
     color: #111;
     transform: translateY(-1px);
     box-shadow: 0 14px 36px rgba(255, 193, 7, 0.45);

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using CampusMart.Data;
 using CampusMart.Models.Entities;
 using System.Linq;
+using System.Security.Claims;
 
 namespace CampusMart.Controllers
 {
@@ -60,6 +61,14 @@ namespace CampusMart.Controllers
             ViewBag.AllCategories = allCategories;
             ViewBag.SearchString = searchString;
             ViewBag.Category = category;
+
+            // Saved items for the current user (for bookmark button state)
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var savedProductIds = await _db.SavedItems
+                .Where(s => s.UserId == userId)
+                .Select(s => s.ProductId)
+                .ToListAsync();
+            ViewBag.SavedProductIds = savedProductIds;
 
             return View(stall);
         }

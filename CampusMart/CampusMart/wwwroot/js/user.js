@@ -76,11 +76,18 @@ document.addEventListener('DOMContentLoaded', function () {
             notificationSidebar.classList.add('open');
             sidebarOverlay.classList.add('active');
             document.body.style.overflow = 'hidden';
+            loadUserNotifications();
         });
     }
 
     if (closeNotificationBtn) {
         closeNotificationBtn.addEventListener('click', closeAllPanels);
+    }
+
+    // Mark all as read button (user)
+    const markAllReadBtnUser = document.getElementById('markAllReadBtnUser');
+    if (markAllReadBtnUser) {
+        markAllReadBtnUser.addEventListener('click', markAllUserNotificationsRead);
     }
 
     // 5. Global Overlay Close
@@ -160,7 +167,86 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeAllPanels();
     });
+
+    // 7. Load initial notification badge on page load
+    loadUserNotifications();
 });
+
+// ── User Notification System ──
+function loadUserNotifications() {
+    const notificationList = document.getElementById('userNotificationList');
+    const notifyDot = document.getElementById('userNotifyDot');
+
+    if (!notificationList) return;
+
+    // Show loading state
+    notificationList.innerHTML = `
+        <div class="notification-loading-user">
+            <i class="bi bi-arrow-clockwise spin-user"></i> Loading...
+        </div>`;
+
+    fetch('/NotificationApi/GetUserNotifications')
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to load');
+            return res.json();
+        })
+        .then(data => {
+            const { notifications, unreadCount } = data;
+
+            // Update notification dot
+            if (notifyDot) {
+                notifyDot.style.display = unreadCount > 0 ? 'block' : 'none';
+            }
+
+            // Render notifications
+            if (!notifications || notifications.length === 0) {
+                notificationList.innerHTML = `
+                    <div class="notification-empty-user">
+                        <i class="bi bi-bell-slash"></i>
+                        <p>No notifications yet</p>
+                        <p class="sub">Alerts will appear here when there's activity.</p>
+                    </div>`;
+                return;
+            }
+
+            notificationList.innerHTML = notifications.map(n => `
+                <div class="notification-item-user ${n.unread ? 'unread' : ''}" data-id="${n.id}">
+                    <div class="notification-icon-user" style="background: ${n.iconBg}; color: ${n.iconColor};">
+                        <i class="bi ${n.icon}"></i>
+                    </div>
+                    <div class="notification-content-user">
+                        <p class="notification-heading-user">${n.title}</p>
+                        <p class="notification-message-user">${n.message}</p>
+                        ${n.time ? `<div class="notification-meta-user">
+                            <i class="bi bi-clock"></i> ${n.time}
+                            ${n.unread ? '<span class="notification-dot-inline"></span>' : ''}
+                        </div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        })
+        .catch(err => {
+            console.error('User notification load error:', err);
+            notificationList.innerHTML = `
+                <div class="notification-empty-user">
+                    <i class="bi bi-wifi-off"></i>
+                    <p>Couldn't load notifications</p>
+                    <button class="retry-btn-user" onclick="loadUserNotifications()">
+                        <i class="bi bi-arrow-clockwise"></i> Retry
+                    </button>
+                </div>`;
+        });
+}
+
+function markAllUserNotificationsRead() {
+    const items = document.querySelectorAll('.notification-item-user.unread');
+    items.forEach(item => item.classList.remove('unread'));
+
+    const notifyDot = document.getElementById('userNotifyDot');
+    if (notifyDot) notifyDot.style.display = 'none';
+
+    showToast('All notifications marked as read');
+}
 
 // Toast notification
 function showToast(message, isError = false) {
