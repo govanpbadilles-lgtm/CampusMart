@@ -1,107 +1,228 @@
 @model CampusMart.Models.ViewModels.User.ProfileViewModel
 @{
-    ViewData["Title"] = "Edit Profile";
+    ViewData["Title"] = "Account Settings";
     Layout = "~/Views/Shared/_UserLayout.cshtml";
 }
 
-<div class="profile-page">
-    <div class="page-header animate-in">
-        <a asp-controller="HomeUser" asp-action="Index" class="back-btn" title="Back to Dashboard">←</a>
-        <div><h1 class="page-title">Edit Profile</h1><p class="page-subtitle">Manage your personal information and preferences</p></div>
-    </div>
-
-    <div class="avatar-section animate-in d1">
-        <div class="avatar-wrapper" onclick="document.getElementById('avatarInput').click()">
-            <img src="@(string.IsNullOrEmpty(Model?.AvatarUrl) ? $"https://ui-avatars.com/api/?name={Model?.FirstName}+{Model?.LastName}&background=222&color=fff&size=220" : Model.AvatarUrl)" alt="Profile" class="avatar-large" id="avatarPreview">
-            <div class="avatar-edit-overlay">📷</div>
-        </div>
-        <input type="file" name="AvatarFile" id="avatarInput" form="profileForm" style="display:none;" accept="image/*">
-        <div class="avatar-details">
-            <h2 id="displayName">@(Model?.FirstName) @(Model?.LastName)</h2>
-            <span class="role-badge">Premium Member</span>
-            <div class="avatar-meta">
-                <span>ID:</span> @Model?.StudentId &nbsp;·&nbsp; <span>Dept:</span> @Model?.Department<br>
-                <span>Email:</span> @Model?.Email
+<div class="container-xl py-5">
+    <!-- PAGE HEADER -->
+    <div class="mb-5 animate-fade-in">
+        <div class="d-flex justify-content-between align-items-end">
+            <div>
+                <span class="cm-pill mb-3">Identity Management</span>
+                <h1 class="hero-title mb-1">Personal Settings</h1>
+                <p class="text-white-50 mb-0">Control your public presence and secure your campus account.</p>
             </div>
-        </div>
-        <div class="avatar-actions">
-            <button class="btn-upload" onclick="document.getElementById('avatarInput').click()">Upload Photo</button>
-            <button class="btn-remove" id="removeAvatarBtn">Remove</button>
+            <a asp-controller="UserDashboard" asp-action="Index" class="cm-btn-outline py-2 px-3 fs-7 text-decoration-none">
+                <i class="bi bi-arrow-left"></i> Dashboard
+            </a>
         </div>
     </div>
 
-    <form id="profileForm" asp-controller="Profile" asp-action="Update" method="post" enctype="multipart/form-data">
-        <div asp-validation-summary="ModelOnly" class="validation-error" style="color: #ff8f8f; margin-bottom: 20px; text-align: center;"></div>
-        <div class="form-section animate-in d2">
-            <div class="form-section-header">
-                <span class="form-section-icon">👤</span>
-                <h3 class="form-section-title">Personal Information</h3>
-                <span class="form-section-desc">Fields with 🔒 cannot be changed</span>
+    <div class="row g-5">
+        <!-- Sidebar Navigation (Settings specific) -->
+        <div class="col-lg-3 animate-fade-in delay-1">
+            <div class="glass-card p-3 sticky-top" style="top: 100px;">
+                <nav class="d-flex flex-column gap-1">
+                    <a href="#personal-sec" class="nav-link-elite active"><i class="bi bi-person-fill"></i> <span>Personal Info</span></a>
+                    <a href="#contact-sec" class="nav-link-elite"><i class="bi bi-envelope-at-fill"></i> <span>Contact Access</span></a>
+                    <a href="#bio-sec" class="nav-link-elite"><i class="bi bi-pencil-square"></i> <span>Student Bio</span></a>
+                </nav>
             </div>
-            <div class="form-grid">
-                <div class="form-group"><label class="form-label">First Name</label><input type="text" class="form-input" id="firstName" asp-for="FirstName"><span asp-validation-for="FirstName" style="color:#ff8f8f; font-size:12px;"></span></div>
-                <div class="form-group"><label class="form-label">Last Name</label><input type="text" class="form-input" id="lastName" asp-for="LastName"><span asp-validation-for="LastName" style="color:#ff8f8f; font-size:12px;"></span></div>
-                <div class="form-group"><label class="form-label">Student ID <span class="lock-icon">🔒</span></label><input type="text" class="form-input" value="@Model?.StudentId" readonly></div>
-                <div class="form-group"><label class="form-label">Department <span class="lock-icon">🔒</span></label><input type="text" class="form-input" value="@Model?.Department" readonly></div>
-                <div class="form-group">
-                    <label class="form-label">Year Level</label>
-                    @{
-                        var yearLevels = new[] { "1st Year", "2nd Year", "3rd Year", "4th Year", "5th Year" };
-                        var currentYear = Model?.YearLevel ?? "3rd Year";
-                    }
-                    <select class="form-select" name="YearLevel">
-                        @foreach (var yr in yearLevels)
-                        {
-                            if (yr == currentYear)
-                            {
-                                <option selected="selected" value="@yr">@yr</option>
-                            }
-                            else
-                            {
-                                <option value="@yr">@yr</option>
-                            }
-                        }
-                    </select>
+        </div>
+
+        <!-- Main Settings Form -->
+        <div class="col-lg-9 animate-fade-in delay-2">
+            <form id="profileForm" asp-controller="Profile" asp-action="Update" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="RemoveAvatar" id="removeAvatarFlag" value="false" />
+                <div asp-validation-summary="All" class="validation-error mb-4" style="color: #ff8f8f; text-align: center;"></div>
+                
+                <!-- AVATAR HERO -->
+                <div class="glass-card p-4 p-md-5 mb-5 overflow-hidden position-relative">
+                    <div class="row align-items-center g-4 position-relative z-1">
+                        <div class="col-md-auto">
+                            <div class="pic-wrapper" style="width: 140px; height: 140px; cursor: pointer;" onclick="document.getElementById('avatarInput').click()">
+                                @{
+                                    var avatarName = $"{Model?.FirstName} {Model?.LastName}".Trim();
+                                    if (string.IsNullOrEmpty(avatarName)) avatarName = "Student";
+                                    var defaultAvatar = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(avatarName)}&background=1a1a1e&color=fcd34d&size=256&bold=true";
+                                }
+                                <img src="@(string.IsNullOrEmpty(Model?.AvatarUrl) ? defaultAvatar : Model.AvatarUrl)" alt="Profile" class="profile-pic-preview" id="avatarPreview" style="border-width: 3px;">
+                                <div class="pic-edit-overlay" style="border-radius: 24px;">
+                                    <i class="bi bi-camera-fill fs-2"></i>
+                                </div>
+                            </div>
+                            <input type="file" name="AvatarFile" id="avatarInput" style="display:none;" accept="image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp">
+                        </div>
+                        <div class="col-md">
+                            <h2 class="text-white fw-900 mb-1">@(Model?.FirstName) @(Model?.LastName)</h2>
+                            <span class="admin-status-pill mb-3"><i class="bi bi-award-fill"></i> ELITE STUDENT</span>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="text-white-50 small fw-600"><i class="bi bi-person-id-card text-warning"></i> @(Model?.StudentId ?? "—")</div>
+                                <div class="text-white-50 small fw-600"><i class="bi bi-building text-warning"></i> @(Model?.Department ?? "—")</div>
+                            </div>
+                        </div>
+                        <div class="col-md-auto ms-auto d-flex flex-column gap-2 align-items-center">
+                            <img id="smallPreview" style="width: 24px; height: 24px; border-radius: 4px; border: 1px solid var(--primary); object-fit: cover; display: none;" class="mb-2" />
+                            <button type="button" class="cm-btn-primary py-2 px-4 fs-7" onclick="document.getElementById('avatarInput').click()">Upload an image</button>
+                            <button type="button" class="cm-btn-outline py-2 px-4 fs-7 text-danger border-danger border-opacity-25" id="removeAvatarBtn">Remove</button>
+                            <span asp-validation-for="AvatarFile" class="text-danger x-small"></span>
+                        </div>
+                    </div>
+                    <div style="position:absolute; top:-50%; right:-10%; width:300px; height:300px; background:radial-gradient(circle,rgba(255,215,0,0.05) 0%,transparent 70%); pointer-events:none;"></div>
                 </div>
-                <div class="form-group"><label class="form-label">Section</label><input type="text" class="form-input" asp-for="Section"><span asp-validation-for="Section" style="color:#ff8f8f; font-size:12px;"></span></div>
-            </div>
-        </div>
 
-        <div class="form-section animate-in d3">
-            <div class="form-section-header"><span class="form-section-icon">📧</span><h3 class="form-section-title">Contact Information</h3></div>
-            <div class="form-grid">
-                <div class="form-group"><label class="form-label">Email <span class="lock-icon">🔒</span></label><input type="email" class="form-input" value="@Model?.Email" readonly></div>
-                <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" class="form-input" asp-for="Phone" placeholder="+63 9XX XXX XXXX"><span asp-validation-for="Phone" style="color:#ff8f8f; font-size:12px;"></span></div>
-                <div class="form-group full-width"><label class="form-label">Address</label><input type="text" class="form-input" asp-for="Address" placeholder="Enter your address"><span asp-validation-for="Address" style="color:#ff8f8f; font-size:12px;"></span></div>
-            </div>
-        </div>
+                <!-- PERSONAL INFO -->
+                <div class="glass-card p-4 p-md-5 mb-5" id="personal-sec">
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <i class="bi bi-shield-lock-fill text-warning fs-4"></i>
+                        <h4 class="text-white fw-800 mb-0">Core Identity</h4>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="form-group-elite">
+                                <label class="modal-label">First Identity</label>
+                                <input type="text" class="modal-input" asp-for="FirstName">
+                                <span asp-validation-for="FirstName" class="text-danger x-small"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-elite">
+                                <label class="modal-label">Family Name</label>
+                                <input type="text" class="modal-input" asp-for="LastName">
+                                <span asp-validation-for="LastName" class="text-danger x-small"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-elite">
+                                <label class="modal-label">Year progression</label>
+                                <select asp-for="YearLevel" class="form-select border-subtle bg-dark text-white rounded-3 py-3">
+                                    <option value="1st Year">1st Year</option>
+                                    <option value="2nd Year">2nd Year</option>
+                                    <option value="3rd Year">3rd Year</option>
+                                    <option value="4th Year">4th Year</option>
+                                    <option value="5th Year">5th Year</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-elite">
+                                <label class="modal-label">Campus Section</label>
+                                <input type="text" class="modal-input" asp-for="Section" placeholder="e.g. BSCS-3A">
+                                <span asp-validation-for="Section" class="text-danger x-small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="form-section animate-in d4">
-            <div class="form-section-header"><span class="form-section-icon">✏️</span><h3 class="form-section-title">About You</h3></div>
-            <div class="form-grid">
-                <div class="form-group full-width"><label class="form-label">Bio</label><textarea class="form-textarea" id="bioInput" name="Bio" maxlength="200" placeholder="Tell other students a bit about yourself...">@Model?.Bio</textarea></div>
-                <div class="char-count full-width"><span id="charCount">0</span> / 200</div>
-            </div>
-        </div>
+                <!-- CONTACT ACCESS -->
+                <div class="glass-card p-4 p-md-5 mb-5" id="contact-sec">
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <i class="bi bi-telephone-fill text-warning fs-4"></i>
+                        <h4 class="text-white fw-800 mb-0">Communication</h4>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="form-group-elite">
+                                <label class="modal-label">System Email <i class="bi bi-lock-fill ms-1 opacity-25"></i></label>
+                                <input type="email" class="modal-input opacity-50" value="@Model?.Email" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-elite">
+                                <label class="modal-label">Contact Number</label>
+                                <input type="tel" class="modal-input" asp-for="Phone" placeholder="+63 9XX XXX XXXX">
+                                <span asp-validation-for="Phone" class="text-danger x-small"></span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group-elite">
+                                <label class="modal-label">Residential Address</label>
+                                <input type="text" class="modal-input" asp-for="Address" placeholder="Enter your full campus or residential address">
+                                <span asp-validation-for="Address" class="text-danger x-small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="action-bar animate-in d4">
-            <a asp-controller="UserDashboard" asp-action="Index" class="btn-cancel" style="text-decoration:none;">Cancel</a>
-            <button type="submit" class="btn-save-profile" id="saveBtn">Save Changes</button>
+                <!-- STUDENT BIO -->
+                <div class="glass-card p-4 p-md-5 mb-5" id="bio-sec">
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <i class="bi bi-pencil-fill text-warning fs-4"></i>
+                        <h4 class="text-white fw-800 mb-0">Profile Narrative</h4>
+                    </div>
+                    <div class="form-group-elite">
+                        <label class="modal-label">Professional Summary</label>
+                        <textarea class="modal-input" id="bioInput" name="Bio" rows="4" maxlength="200" placeholder="A brief introduction for other students to see...">@Model?.Bio</textarea>
+                        <div class="d-flex justify-content-end mt-2">
+                            <span class="x-small text-white-50 fw-700"><span id="charCount" class="text-warning">0</span> / 200</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTION BAR -->
+                <div class="glass-card p-4 d-flex justify-content-between align-items-center">
+                    <p class="mb-0 text-white-50 small"><i class="bi bi-info-circle text-warning me-1"></i> Changes apply after you save. Photos: JPG/PNG/GIF/WEBP up to 5&nbsp;MB.</p>
+                    <div class="d-flex gap-3">
+                        <a asp-controller="UserDashboard" asp-action="Index" class="cm-btn-outline px-4">Discard</a>
+                        <button type="submit" class="cm-btn-primary px-5 py-3" id="saveBtn">Save Preferences</button>
+                    </div>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 
 @section Scripts {
     <script>
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <text>
-            document.addEventListener("DOMContentLoaded", function() {
-                if (typeof showToast === 'function') {
-                    showToast('@Html.Raw(TempData["SuccessMessage"])', 'success');
-                }
-            });
-            </text>
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            // Bio char count
+            const bioInput = document.getElementById('bioInput');
+            const charCount = document.getElementById('charCount');
+            if (bioInput && charCount) {
+                const updateCount = () => { charCount.textContent = bioInput.value.length; };
+                bioInput.addEventListener('input', updateCount);
+                updateCount();
+            }
+
+            // Image preview
+            const avatarInput = document.getElementById('avatarInput');
+            const avatarPreview = document.getElementById('avatarPreview');
+            const removeFlag = document.getElementById('removeAvatarFlag');
+            const defaultAvatarSrc = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                $"https://ui-avatars.com/api/?name={Uri.EscapeDataString((string.IsNullOrWhiteSpace($"{Model?.FirstName} {Model?.LastName}".Trim()) ? "Student" : $"{Model?.FirstName} {Model?.LastName}".Trim()))}&background=1a1a1e&color=fcd34d&size=256&bold=true"));
+
+            if (avatarInput && avatarPreview) {
+                avatarInput.addEventListener('change', function() {
+                    if (removeFlag) removeFlag.value = 'false';
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => { 
+                            avatarPreview.src = e.target.result;
+                            const smallPreview = document.getElementById('smallPreview');
+                            if (smallPreview) {
+                                smallPreview.src = e.target.result;
+                                smallPreview.style.display = 'block';
+                            }
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            }
+
+            const removeBtn = document.getElementById('removeAvatarBtn');
+            if (removeBtn && avatarPreview && avatarInput && removeFlag) {
+                removeBtn.addEventListener('click', () => {
+                    removeFlag.value = 'true';
+                    avatarInput.value = '';
+                    avatarPreview.src = defaultAvatarSrc;
+                });
+            }
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <text>if (typeof showToast === 'function') { showToast('@Html.Raw(TempData["SuccessMessage"])', false); }</text>
+            }
+        });
     </script>
 }

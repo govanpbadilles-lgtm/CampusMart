@@ -3,12 +3,10 @@ namespace CampusMart.Models.ViewModels.User
     public class CheckoutViewModel
     {
         public List<CartItemViewModel> Items { get; set; } = new();
-        public decimal Subtotal => Items.Sum(i => i.Price * i.Quantity);
-        public int ItemCount => Items.Sum(i => i.Quantity);
-
-        public string? ShippingAddress { get; set; }
         public string? PaymentMethod { get; set; }
-        public string? FulfillmentMethod { get; set; }
+        /// <summary>Masked or summary text after simulated GCash / bank entry (e.g. "GCash ••••1234").</summary>
+        public string? PaymentAccountMasked { get; set; }
         public string? Notes { get; set; }
+        public decimal Total => Items.Sum(i => i.Price * i.Quantity);
     }
 }

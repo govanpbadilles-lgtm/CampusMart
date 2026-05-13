@@ -19,16 +19,38 @@ namespace CampusMart.Areas.Admin.Controllers
             _env = env;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchString, string? department)
         {
             var admins = await _userManager.GetUsersInRoleAsync("Admin");
             var adminIds = admins.Select(a => a.Id).ToHashSet();
 
-            var users = await _userManager.Users
+            var query = _userManager.Users.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                query = query.Where(u => u.FullName.Contains(searchString) || u.StudentId.Contains(searchString) || u.Email.Contains(searchString));
+            }
+
+            if (!string.IsNullOrEmpty(department))
+            {
+                query = query.Where(u => u.Department == department);
+            }
+
+            var users = await query
                 .OrderByDescending(u => u.DateTime)
                 .ToListAsync();
 
             var students = users.Where(u => !adminIds.Contains(u.Id)).ToList();
+
+            ViewBag.SearchString = searchString;
+            ViewBag.Department = department;
+            ViewBag.Departments = await _userManager.Users
+                .Where(u => !string.IsNullOrEmpty(u.Department))
+                .Select(u => u.Department)
+                .Distinct()
+                .OrderBy(d => d)
+                .ToListAsync();
+
             return View(students);
         }
 
@@ -70,15 +92,17 @@ namespace CampusMart.Areas.Admin.Controllers
             // Optional avatar update
             if (dto.AvatarFile != null && dto.AvatarFile.Length > 0)
             {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "avatars");
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "avatars");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
-                var fileName = Guid.NewGuid() + "_" + dto.AvatarFile.FileName;
+                var fileName = Guid.NewGuid() + Path.GetExtension(dto.AvatarFile.FileName);
                 var filePath = Path.Combine(uploadsFolder, fileName);
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await dto.AvatarFile.CopyToAsync(stream);
-                user.AvatarUrl = "/images/avatars/" + fileName;
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.AvatarFile.CopyToAsync(stream);
+                }
+                user.AvatarUrl = "/uploads/avatars/" + fileName;
             }
 
             var result = await _userManager.UpdateAsync(user);
@@ -126,15 +150,17 @@ namespace CampusMart.Areas.Admin.Controllers
             string? avatarUrl = null;
             if (dto.AvatarFile != null && dto.AvatarFile.Length > 0)
             {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "avatars");
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "avatars");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
-                var fileName = Guid.NewGuid() + "_" + dto.AvatarFile.FileName;
+                var fileName = Guid.NewGuid() + Path.GetExtension(dto.AvatarFile.FileName);
                 var filePath = Path.Combine(uploadsFolder, fileName);
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await dto.AvatarFile.CopyToAsync(stream);
-                avatarUrl = "/images/avatars/" + fileName;
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.AvatarFile.CopyToAsync(stream);
+                }
+                avatarUrl = "/uploads/avatars/" + fileName;
             }
 
             var newUser = new ApplicationUser

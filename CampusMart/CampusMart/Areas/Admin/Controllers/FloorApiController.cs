@@ -35,6 +35,8 @@ namespace CampusMart.Areas.Admin.Controllers
                     f.Name,
                     f.FloorNumber,
                     f.Capacity,
+                    f.Description,
+                    f.Building,
                     StallCount = f.Stalls.Count(s => s.IsActive),
                     TotalStalls = f.Stalls.Count
                 })
@@ -53,13 +55,15 @@ namespace CampusMart.Areas.Admin.Controllers
             {
                 Name = dto.Name,
                 FloorNumber = dto.FloorNumber,
-                Capacity = dto.Capacity > 0 ? dto.Capacity : 8
+                Capacity = dto.Capacity > 0 ? dto.Capacity : 8,
+                Description = dto.Description,
+                Building = dto.Building
             };
 
             _db.Floors.Add(floor);
             await _db.SaveChangesAsync();
 
-            return Json(new { floor.Id, floor.Name, floor.FloorNumber, floor.Capacity, StallCount = 0, TotalStalls = 0 });
+            return Json(new { floor.Id, floor.Name, floor.FloorNumber, floor.Capacity, floor.Description, floor.Building, StallCount = 0, TotalStalls = 0 });
         }
 
         [HttpDelete("floors/{id}")]
@@ -94,7 +98,7 @@ namespace CampusMart.Areas.Admin.Controllers
                     s.CloseTime,
                     s.IsActive,
                     s.FloorId,
-                    ItemCount = s.StallItems.Count
+                    ItemCount = s.Products.Count
                 })
                 .ToListAsync();
 
@@ -110,15 +114,17 @@ namespace CampusMart.Areas.Admin.Controllers
             string? imageUrl = null;
             if (dto.Image != null && dto.Image.Length > 0)
             {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "stalls");
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "stalls");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
-                var fileName = Guid.NewGuid() + "_" + dto.Image.FileName;
+                var fileName = Guid.NewGuid() + Path.GetExtension(dto.Image.FileName);
                 var filePath = Path.Combine(uploadsFolder, fileName);
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await dto.Image.CopyToAsync(stream);
-                imageUrl = "/images/stalls/" + fileName;
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.Image.CopyToAsync(stream);
+                }
+                imageUrl = "/uploads/stalls/" + fileName;
             }
 
             var stall = new Stall
@@ -131,7 +137,7 @@ namespace CampusMart.Areas.Admin.Controllers
                 ImageUrl = imageUrl,
                 OpenTime = dto.OpenTime ?? "08:00",
                 CloseTime = dto.CloseTime ?? "20:00",
-                IsActive = true,
+                IsActive = dto.IsActive,
                 FloorId = dto.FloorId
             };
 
@@ -168,18 +174,21 @@ namespace CampusMart.Areas.Admin.Controllers
             stall.Description = dto.Description ?? stall.Description;
             stall.OpenTime = dto.OpenTime ?? stall.OpenTime;
             stall.CloseTime = dto.CloseTime ?? stall.CloseTime;
+            stall.IsActive = dto.IsActive;
 
             if (dto.Image != null && dto.Image.Length > 0)
             {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "stalls");
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "stalls");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
-                var fileName = Guid.NewGuid() + "_" + dto.Image.FileName;
+                var fileName = Guid.NewGuid() + Path.GetExtension(dto.Image.FileName);
                 var filePath = Path.Combine(uploadsFolder, fileName);
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await dto.Image.CopyToAsync(stream);
-                stall.ImageUrl = "/images/stalls/" + fileName;
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.Image.CopyToAsync(stream);
+                }
+                stall.ImageUrl = "/uploads/stalls/" + fileName;
             }
 
             await _db.SaveChangesAsync();
@@ -208,22 +217,64 @@ namespace CampusMart.Areas.Admin.Controllers
             return Ok();
         }
 
-        // ── STALL ITEMS ──
+        // ── PRODUCTS (inside stalls) ──
 
-        [HttpGet("stalls/{stallId}/items")]
-        public async Task<IActionResult> GetStallItems(int stallId)
+        [HttpGet("stalls/{stallId}/products")]
+        public async Task<IActionResult> GetProducts(int stallId)
         {
-            var items = await _db.StallItems
-                .Where(i => i.StallId == stallId)
-                .OrderBy(i => i.Name)
-                .Select(i => new { i.Id, i.Name, i.Price, i.Description, i.ImageUrl, i.Stock, i.StallId })
+            var products = await _db.Products
+                .Where(p => p.StallId == stallId)
+                .Include(p => p.Category)
+                .OrderBy(p => p.Name)
+                .Select(p => new { p.Id, p.Name, p.Price, p.Description, p.ImageUrl, p.Stock, p.StallId, p.CategoryId, CategoryName = p.Category != null ? p.Category.Name : "" })
                 .ToListAsync();
 
-            return Json(items);
+            return Json(products);
         }
 
-        [HttpPost("stall-items")]
-        public async Task<IActionResult> CreateStallItem([FromForm] StallItemDto dto)
+        [HttpGet("categories")]
+        public async Task<IActionResult> GetCategories(int? stallId)
+        {
+            var query = _db.Categories.AsQueryable();
+            
+            if (stallId.HasValue)
+            {
+                query = query.Where(c => c.StallId == null || c.StallId == stallId.Value);
+            }
+            else
+            {
+                query = query.Where(c => c.StallId == null);
+            }
+
+            var categories = await query
+                .OrderBy(c => c.Name)
+                .Select(c => new { c.Id, c.Name, c.Icon, c.StallId })
+                .ToListAsync();
+
+            return Json(categories);
+        }
+
+        [HttpPost("categories")]
+        public async Task<IActionResult> CreateCategory([FromBody] CategoryDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name)) return BadRequest("Category name is required.");
+
+            var category = new Category
+            {
+                Name = dto.Name,
+                Icon = dto.Icon,
+                Description = dto.Description,
+                StallId = dto.StallId
+            };
+
+            _db.Categories.Add(category);
+            await _db.SaveChangesAsync();
+
+            return Json(new { category.Id, category.Name, category.Icon, category.StallId });
+        }
+
+        [HttpPost("products")]
+        public async Task<IActionResult> CreateProduct([FromForm] ProductCreateDto dto)
         {
             var stall = await _db.Stalls.FindAsync(dto.StallId);
             if (stall == null) return BadRequest("Stall not found.");
@@ -231,40 +282,78 @@ namespace CampusMart.Areas.Admin.Controllers
             string? imageUrl = null;
             if (dto.Image != null && dto.Image.Length > 0)
             {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "stall-items");
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "products");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
-                var fileName = Guid.NewGuid() + "_" + dto.Image.FileName;
+                var fileName = Guid.NewGuid() + Path.GetExtension(dto.Image.FileName);
                 var filePath = Path.Combine(uploadsFolder, fileName);
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await dto.Image.CopyToAsync(stream);
-                imageUrl = "/images/stall-items/" + fileName;
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.Image.CopyToAsync(stream);
+                }
+                imageUrl = "/uploads/products/" + fileName;
             }
 
-            var item = new StallItem
+            var product = new Product
             {
                 Name = dto.Name ?? "",
                 Price = dto.Price,
                 Description = dto.Description ?? "",
                 ImageUrl = imageUrl,
-                Stock = dto.Stock,
-                StallId = dto.StallId
+                Stock = dto.Stock > 0 ? dto.Stock : 1,
+                StallId = dto.StallId,
+                CategoryId = dto.CategoryId
             };
 
-            _db.StallItems.Add(item);
+            _db.Products.Add(product);
             await _db.SaveChangesAsync();
 
-            return Json(new { item.Id, item.Name, item.Price, item.Description, item.ImageUrl, item.Stock, item.StallId });
+            var category = await _db.Categories.FindAsync(product.CategoryId);
+
+            return Json(new { product.Id, product.Name, product.Price, product.Description, product.ImageUrl, product.Stock, product.StallId, product.CategoryId, CategoryName = category?.Name ?? "" });
         }
 
-        [HttpDelete("stall-items/{id}")]
-        public async Task<IActionResult> DeleteStallItem(int id)
+        [HttpPut("products/{id}")]
+        public async Task<IActionResult> UpdateProduct(int id, [FromForm] ProductCreateDto dto)
         {
-            var item = await _db.StallItems.FindAsync(id);
-            if (item == null) return NotFound();
+            var product = await _db.Products.FindAsync(id);
+            if (product == null) return NotFound();
 
-            _db.StallItems.Remove(item);
+            product.Name = dto.Name ?? product.Name;
+            product.Price = dto.Price;
+            product.Description = dto.Description ?? product.Description;
+            product.Stock = dto.Stock;
+            product.CategoryId = dto.CategoryId > 0 ? dto.CategoryId : product.CategoryId;
+
+            if (dto.Image != null && dto.Image.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "products");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(dto.Image.FileName);
+                var filePath = Path.Combine(uploadsFolder, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.Image.CopyToAsync(stream);
+                }
+                product.ImageUrl = "/uploads/products/" + fileName;
+            }
+
+            await _db.SaveChangesAsync();
+
+            var category = await _db.Categories.FindAsync(product.CategoryId);
+            return Json(new { product.Id, product.Name, product.Price, product.Description, product.ImageUrl, product.Stock, product.StallId, product.CategoryId, CategoryName = category?.Name ?? "" });
+        }
+
+        [HttpDelete("products/{id}")]
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            var product = await _db.Products.FindAsync(id);
+            if (product == null) return NotFound();
+
+            _db.Products.Remove(product);
             await _db.SaveChangesAsync();
             return Ok();
         }
@@ -277,6 +366,16 @@ namespace CampusMart.Areas.Admin.Controllers
         public string? Name { get; set; }
         public int FloorNumber { get; set; }
         public int Capacity { get; set; }
+        public string? Description { get; set; }
+        public string? Building { get; set; }
+    }
+
+    public class CategoryDto
+    {
+        public string? Name { get; set; }
+        public string? Icon { get; set; }
+        public string? Description { get; set; }
+        public int? StallId { get; set; }
     }
 
     public class StallCreateDto
@@ -288,17 +387,19 @@ namespace CampusMart.Areas.Admin.Controllers
         public string? Description { get; set; }
         public string? OpenTime { get; set; }
         public string? CloseTime { get; set; }
+        public bool IsActive { get; set; }
         public int FloorId { get; set; }
         public IFormFile? Image { get; set; }
     }
 
-    public class StallItemDto
+    public class ProductCreateDto
     {
         public string? Name { get; set; }
         public decimal Price { get; set; }
         public string? Description { get; set; }
         public int Stock { get; set; }
         public int StallId { get; set; }
+        public int CategoryId { get; set; }
         public IFormFile? Image { get; set; }
     }
 }

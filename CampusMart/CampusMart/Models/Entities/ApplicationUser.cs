@@ -6,7 +6,7 @@ namespace CampusMart.Models.Entities
     public class ApplicationUser : IdentityUser
     {
         [Required]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = "";
 
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
@@ -19,7 +19,7 @@ namespace CampusMart.Models.Entities
         public string? AvatarUrl { get; set; }
 
         public DateTime DateTime { get; set; } = DateTime.UtcNow;
-        public ICollection<Order> Orders { get; set; }
-        public Cart Cart { get; set; }
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
+        public Cart? Cart { get; set; }
     }
 }

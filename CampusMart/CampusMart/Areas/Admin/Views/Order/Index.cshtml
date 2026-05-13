@@ -4,79 +4,139 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="dashboard-container">
-    <div class="form-header animate-fade-in">
-        <h1 class="form-title">Store Oversight</h1>
-        <p class="form-subtitle">Monitor and manage all transactions across the CampusMart platform.</p>
+<div class="admin-header-row">
+    <div>
+        <h2 class="section-title">Store Oversight</h2>
+        <p class="section-subtitle">Monitor and manage all transactions and marketplace activity across the platform.</p>
     </div>
+</div>
 
-    <div class="stats-grid animate-fade-in delay-1" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
-        <div class="stat-card" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px;">
-            <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Total Revenue</div>
-            <div style="font-size: 28px; font-weight: 800; color: #79e7a3;">₱@Model.Sum(o => o.TotalAmount).ToString("0.00")</div>
-        </div>
-        <div class="stat-card" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px;">
-            <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Total Orders</div>
-            <div style="font-size: 28px; font-weight: 800; color: #fff;">@Model.Count()</div>
-        </div>
-        <div class="stat-card" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px;">
-            <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Completed Orders</div>
-            <div style="font-size: 28px; font-weight: 800; color: #fff;">@Model.Count(o => o.Status == "Completed")</div>
+<div class="metrics">
+    <div class="metric-card">
+        <div class="metric-label">Total Platform Revenue</div>
+        <div class="metric-value" style="color: #4ade80;">₱@Model.Sum(o => o.TotalAmount).ToString("N2")</div>
+        <div class="metric-sub">
+            <i class="bi bi-graph-up-arrow"></i> Lifetime earnings
         </div>
     </div>
+    <div class="metric-card">
+        <div class="metric-label">Transaction Count</div>
+        <div class="metric-value">@Model.Count()</div>
+        <div class="metric-sub">
+            <i class="bi bi-cart-check-fill"></i> Total processed orders
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Success Rate</div>
+        @{
+            var totalOrders = Model.Count();
+            var completedOrders = Model.Count(o => o.Status == "Completed");
+            var successRate = totalOrders > 0 ? Math.Round((double)completedOrders * 100 / totalOrders, 2) : 0;
+        }
+        <div class="metric-value">@successRate%</div>
+        <div class="metric-sub">
+            <i class="bi bi-patch-check-fill"></i> Fulfilled orders
+        </div>
+    </div>
+</div>
 
-    <div class="table-container animate-fade-in delay-2" style="background: #141417; border-radius: 12px; border: 1px solid var(--border-subtle); overflow: hidden;">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-subtle); text-align: left;">
-                    <th style="padding: 16px 20px; font-size: 13px; color: var(--text-muted); font-weight: 600;">Order ID</th>
-                    <th style="padding: 16px 20px; font-size: 13px; color: var(--text-muted); font-weight: 600;">Date</th>
-                    <th style="padding: 16px 20px; font-size: 13px; color: var(--text-muted); font-weight: 600;">Student</th>
-                    <th style="padding: 16px 20px; font-size: 13px; color: var(--text-muted); font-weight: 600;">Amount</th>
-                    <th style="padding: 16px 20px; font-size: 13px; color: var(--text-muted); font-weight: 600;">Status</th>
-                    <th style="padding: 16px 20px; font-size: 13px; color: var(--text-muted); font-weight: 600;">Payment Method</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model != null && Model.Any())
-                {
-                    foreach (var order in Model)
-                    {
-                        <tr style="border-bottom: 1px solid var(--border-subtle); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
-                            <td style="padding: 16px 20px; font-size: 14px; font-weight: 600;">#@order.Id</td>
-                            <td style="padding: 16px 20px; font-size: 14px; color: var(--text-muted);">@order.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
-                            <td style="padding: 16px 20px; font-size: 14px;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #000; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800;">
-                                        @(order.User?.FullName?.Substring(0,1) ?? "U")
-                                    </div>
-                                    <span>@order.User?.FullName</span>
-                                </div>
-                            </td>
-                            <td style="padding: 16px 20px; font-size: 14px; font-weight: 600; color: #79e7a3;">₱@order.TotalAmount.ToString("0.00")</td>
-                            <td style="padding: 16px 20px;">
-                                @{
-                                    var statusColor = order.Status == "Completed" ? "#79e7a3" : order.Status == "Pending" ? "#ffd54f" : "#ff8d8d";
-                                }
-                                <span style="display: inline-block; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; background: @(statusColor)22; color: @statusColor;">
-                                    @order.Status
-                                </span>
-                            </td>
-                            <td style="padding: 16px 20px; font-size: 14px; color: var(--text-muted);">@order.PaymentMethod</td>
-                        </tr>
-                    }
-                }
-                else
+<div class="table-wrap">
+    <table class="cm-table">
+        <thead>
+            <tr>
+                <th style="width: 120px;">Reference ID</th>
+                <th>Order Date</th>
+                <th>Purchasing Student</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var order in Model)
                 {
                     <tr>
-                        <td colspan="6" style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
-                            <div style="font-size: 32px; margin-bottom: 12px;">📊</div>
-                            <div style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;">No Orders Found</div>
-                            <div>There are no transactions in the system yet.</div>
+                        <td>
+                            <span style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #fff; background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 6px;">#ORD-@order.Id</span>
+                        </td>
+                        <td style="color: var(--text-dim); font-size: 13px;">@order.CreatedAt.ToString("MMM dd, yyyy · HH:mm")</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="avatar-placeholder" style="width: 32px; height: 32px; font-size: 12px;">
+                                    @(order.User?.FullName?.Substring(0,1) ?? "U")
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; color: #fff;">@order.User?.FullName</div>
+                                    <div style="font-size: 11px; color: var(--admin-primary); font-weight: 800; text-transform: uppercase;">@order.User?.StudentId</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="font-weight: 800; color: #4ade80; font-size: 15px;">₱@order.TotalAmount.ToString("N2")</span>
+                            <div style="font-size: 10px; color: var(--text-dim); font-weight: 700; margin-top: 2px;">via @order.PaymentMethod</div>
+                        </td>
+                        <td>
+                            @if (order.Status == "Completed")
+                            {
+                                <span class="status-badge status-open"><i class="bi bi-check-circle-fill"></i> Completed</span>
+                            }
+                            else if (order.Status == "Pending" || order.Status == "Confirmed")
+                            {
+                                <span class="status-badge status-closed"><i class="bi bi-hourglass-split"></i> @order.Status</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge status-inactive"><i class="bi bi-x-circle-fill"></i> @order.Status</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                @if (order.Status != "Completed" && order.Status != "Cancelled")
+                                {
+                                    <form asp-action="UpdateStatus" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@order.Id" />
+                                        <input type="hidden" name="status" value="Completed" />
+                                        <button type="submit" class="tool-btn" style="color: #4ade80;" title="Mark as Completed">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </form>
+                                    <form asp-action="UpdateStatus" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@order.Id" />
+                                        <input type="hidden" name="status" value="Cancelled" />
+                                        <button type="submit" class="tool-btn" style="color: #f87171;" title="Cancel Order">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </form>
+                                }
+                                <a asp-action="Details" asp-route-id="@order.Id" class="tool-btn" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <form asp-action="DeleteOrder" method="post" style="display:inline;" onsubmit="return confirm('Permanently delete this order record?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@order.Id" />
+                                    <button type="submit" class="tool-btn" style="color: var(--text-dim);" title="Delete Order">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 }
-            </tbody>
-        </table>
-    </div>
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div style="opacity: 0.2; margin-bottom: 16px;"><i class="bi bi-bar-chart-line" style="font-size: 64px;"></i></div>
+                        <h4 style="color: #fff; font-weight: 800;">No Transaction Data</h4>
+                        <p style="color: var(--text-muted);">The platform hasn't processed any orders yet.</p>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>

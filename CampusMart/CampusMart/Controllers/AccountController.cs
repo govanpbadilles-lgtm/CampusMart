@@ -40,7 +40,7 @@ namespace CampusMart.Controllers
         {
             if (!ModelState.IsValid)
             {
-                TempData["ErrorMessage"] = "Please provide valid credentials.";
+                TempData["ErrorMessage"] = "Invalid input. Please check your data.";
                 return View(model);
             }
 
@@ -53,10 +53,10 @@ namespace CampusMart.Controllers
                 return View(model);
             }
 
-            var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
             if (result.Succeeded)
             {
-                TempData["SuccessMessage"] = "Successfully logged in. Welcome back!";
+                TempData["SuccessMessage"] = "Login Successful! Welcome back.";
                 if (await _userManager.IsInRoleAsync(user, "Admin"))
                     return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
 
@@ -75,18 +75,76 @@ namespace CampusMart.Controllers
         }
 
         [HttpPost]
-        public IActionResult ForgotPassword(string studentId)
+        public async Task<IActionResult> ForgotPassword(string studentId, string email)
         {
-            if (string.IsNullOrEmpty(studentId))
+            if (string.IsNullOrEmpty(studentId) || string.IsNullOrEmpty(email))
             {
-                ModelState.AddModelError("", "Please enter your Student ID.");
+                TempData["ErrorMessage"] = "Please enter both Student ID and Email.";
                 return View();
             }
 
-            // In a real application, you would generate a reset token and send an email.
-            // For now, we will simulate a successful password reset email sent.
-            TempData["SuccessMessage"] = "If an account with that Student ID exists, a password reset link has been sent to the registered email address.";
-            return RedirectToAction("Login");
+            var user = await _userManager.FindByNameAsync(studentId);
+            if (user == null || user.Email != email)
+            {
+                TempData["ErrorMessage"] = "No account found with those credentials.";
+                return View();
+            }
+
+            // In a real app, you'd use a token. For this fix, we'll redirect to ResetPassword with the user's ID
+            // in TempData to simulate a secure handoff.
+            TempData["ResetUserId"] = user.Id;
+            return RedirectToAction("ResetPassword");
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            if (TempData["ResetUserId"] == null)
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+            // Keep it for the POST request
+            TempData.Keep("ResetUserId");
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(string newPassword, string confirmPassword)
+        {
+            var userId = TempData["ResetUserId"] as string;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                TempData["ErrorMessage"] = "Passwords do not match.";
+                TempData.Keep("ResetUserId");
+                return View();
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "Password has been reset successfully. Please login.";
+                return RedirectToAction("Login");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+            TempData.Keep("ResetUserId");
+            return View();
         }
 
         [HttpGet]
@@ -128,7 +186,8 @@ namespace CampusMart.Controllers
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
             {
-                TempData["SuccessMessage"] = "Account successfully created! Please login to continue.";
+                await _userManager.AddToRoleAsync(user, "User");
+                TempData["SuccessMessage"] = "Account Created Successfully! Please login.";
                 return RedirectToAction("Login", "Account");
             }
 

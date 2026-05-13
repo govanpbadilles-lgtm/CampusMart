@@ -28,5 +28,8 @@ namespace CampusMart.Models.ViewModels.User
         public string? Section { get; set; }
 
         public IFormFile? AvatarFile { get; set; }
+
+        /// <summary>When true, clears the user's custom avatar on save.</summary>
+        public bool RemoveAvatar { get; set; }
     }
 }

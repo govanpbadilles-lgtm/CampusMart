@@ -1,25 +1,96 @@
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Dashboard Overview";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var totalOrders = ViewBag.TotalOrders ?? 0;
+    var totalUsers = ViewBag.TotalUsers ?? 0;
+    var totalRevenue = ViewBag.TotalRevenue ?? 0m;
+    var recentOrders = ViewBag.RecentOrders as List<CampusMart.Models.Entities.Order> ?? new();
 }
 
-<h2 class="section-title">Dashboard Overview</h2>
-<div class="panel">
-    <h3 class="panel-title">Admin Summary</h3>
-    <div class="kpi-grid">
-        <div class="kpi-box"><div class="num" id="dashStalls">0</div><div class="lbl">Active Stalls</div></div>
-        <div class="kpi-box"><div class="num" id="dashStudents">3</div><div class="lbl">Students</div></div>
-        <div class="kpi-box"><div class="num">7</div><div class="lbl">Pending Requests</div></div>
-        <div class="kpi-box"><div class="num">$12.4k</div><div class="lbl">Avg Floor Revenue</div></div>
-    </div>
-</div>
-<div class="panel">
-    <h3 class="panel-title">Quick Actions</h3>
-    <div class="inline-actions">
-        <a asp-controller="Dashboard" asp-action="Index" class="btn">Open Floor Management</a>
-        <a asp-controller="UserManagement" asp-action="Index" class="btn">Review Student Directory</a>
+<div class="admin-header-row">
+    <div>
+        <h2 class="section-title">Platform Overview</h2>
+        <p class="section-subtitle">A bird's eye view of CampusMart's growth and activity.</p>
     </div>
 </div>
 
-@section Scripts {
-    <script src="~/js/floor-management.js" asp-append-version="true"></script>
-}
+<div class="metrics">
+    <div class="metric-card">
+        <div class="metric-label">Total Revenue</div>
+        <div class="metric-value" style="color: #4ade80;">₱@totalRevenue.ToString("N2")</div>
+        <div class="metric-sub">
+            <i class="bi bi-graph-up-arrow"></i> Lifetime marketplace sales
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Registered Students</div>
+        <div class="metric-value">@totalUsers</div>
+        <div class="metric-sub">
+            <i class="bi bi-people-fill"></i> Active campus portal users
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Total Transactions</div>
+        <div class="metric-value">@totalOrders</div>
+        <div class="metric-sub">
+            <i class="bi bi-cart-check-fill"></i> Processed order volume
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="panel h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="panel-title mb-0">Recent Transactions</h3>
+                <a asp-controller="Order" asp-action="Index" class="btn-link">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="cm-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in recentOrders)
+                        {
+                            <tr>
+                                <td>@order.User?.FullName</td>
+                                <td style="color: #4ade80; font-weight: 700;">₱@order.TotalAmount.ToString("N2")</td>
+                                <td>
+                                    <span class="status-badge @(order.Status == "Completed" ? "status-open" : "status-closed")">
+                                        @order.Status
+                                    </span>
+                                </td>
+                                <td class="text-muted small">@order.CreatedAt.ToString("MMM dd")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel h-100">
+            <h3 class="panel-title">Quick Navigation</h3>
+            <div class="d-grid gap-2">
+                <a asp-controller="Dashboard" asp-action="Index" class="admin-nav active text-decoration-none">
+                    <span><i class="bi bi-layers-half"></i></span> Floor Management
+                </a>
+                <a asp-controller="Order" asp-action="Index" class="admin-nav active text-decoration-none" style="border-left-color: #4ade80;">
+                    <span><i class="bi bi-shop"></i></span> Store Oversight
+                </a>
+                <a asp-controller="UserManagement" asp-action="Index" class="admin-nav active text-decoration-none" style="border-left-color: #facc15;">
+                    <span><i class="bi bi-people"></i></span> Student Directory
+                </a>
+                <a asp-controller="Settings" asp-action="Index" class="admin-nav active text-decoration-none" style="border-left-color: #f87171;">
+                    <span><i class="bi bi-gear"></i></span> System Settings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

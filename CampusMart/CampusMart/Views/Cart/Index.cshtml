@@ -1,55 +1,121 @@
 @model CampusMart.Models.ViewModels.User.CartViewModel
 @{
-    ViewData["Title"] = "Cart";
+    ViewData["Title"] = "My Cart";
     Layout = "~/Views/Shared/_UserLayout.cshtml";
+    var hasItems = Model.Items != null && Model.Items.Count > 0;
 }
 
-<div class="cart-container">
-    <div class="page-header animate-in">
-        <a asp-controller="UserDashboard" asp-action="Index" class="back-btn">←</a>
-        <div><h1 class="page-title">Shopping Cart</h1><p class="page-subtitle">@Model.ItemCount items in your cart</p></div>
+<div class="container-xl py-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-5 animate-fade-in">
+        <div>
+            <span class="cm-pill mb-2 d-inline-block">Your bag</span>
+            <h1 class="hero-title mb-1">My cart</h1>
+            <p class="text-white-50 small mb-0">Same items as the cart in the top bar—update quantities here or from checkout.</p>
+        </div>
+        <a asp-controller="UserDashboard" asp-action="Index" class="cm-btn-outline py-2 px-3 fs-7 text-decoration-none">
+            <i class="bi bi-arrow-left"></i> Continue shopping
+        </a>
     </div>
 
-    @if (Model.Items.Any())
+    @if (hasItems)
     {
-        @foreach (var item in Model.Items)
-        {
-            <div class="cart-item animate-in d1" data-item-id="@item.CartItemId">
-                <img src="@(item.ImageUrl ?? "https://via.placeholder.com/80")" alt="@item.ProductName" class="cart-item-img">
-                <div class="cart-item-info">
-                    <div class="cart-item-name">@item.ProductName</div>
-                    <div class="cart-item-meta">@item.CategoryName</div>
-                </div>
-                <div class="cart-qty">
-                    <button data-action="decrease">−</button>
-                    <span>@item.Quantity</span>
-                    <button data-action="increase">+</button>
-                </div>
-                <div class="cart-item-price">₱@item.Price.ToString("F2")</div>
-                <form asp-controller="Cart" asp-action="RemoveFromCart" method="post" style="display:inline;">
-                    <input type="hidden" name="cartItemId" value="@item.CartItemId" />
-                    <button type="submit" class="cart-item-remove" title="Remove">✕</button>
-                </form>
-            </div>
-        }
+        <div class="row g-5">
+            <div class="col-lg-8 animate-fade-in delay-1">
+                <div class="cart-items-wrap">
+                    @foreach (var item in Model.Items!)
+                    {
+                        var lineTotal = item.Price * item.Quantity;
+                        <div class="glass-card mb-4 overflow-hidden cart-item-elite" data-item-id="@item.CartItemId" data-unit-price="@item.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                            <div class="row g-0 align-items-center">
+                                <div class="col-3 col-md-2">
+                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                    {
+                                        <img src="@item.ImageUrl" alt="@item.ProductName" class="img-fluid h-100 object-fit-cover" style="min-height: 120px;">
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex align-items-center justify-content-center bg-dark" style="min-height: 120px;">
+                                            <i class="bi bi-box fs-2 text-white-50"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col-9 col-md-10">
+                                    <div class="p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4">
+                                        <div class="flex-grow-1">
+                                            <h5 class="text-white fw-800 mb-1">@item.ProductName</h5>
+                                            <span class="text-white-50 small fw-600"><i class="bi bi-tag text-warning"></i> @item.CategoryName</span>
+                                            <div class="x-small text-white-50 mt-1">₱@item.Price.ToString("N2") each</div>
+                                        </div>
 
-        <div class="cart-summary animate-in d2">
-            <div class="cart-summary-row"><span>Subtotal</span><span id="cartSubtotal">₱@Model.Subtotal.ToString("F2")</span></div>
-            <div class="cart-summary-row"><span>Platform Fee</span><span style="color:#4ade80;">Free</span></div>
-            <div class="cart-summary-row total"><span>Total</span><span id="cartTotal">₱@Model.Subtotal.ToString("F2")</span></div>
-            <a asp-controller="Order" asp-action="Checkout" class="btn-checkout" style="display:block;text-align:center;text-decoration:none;">Proceed to Checkout</a>
-            <a asp-controller="UserDashboard" asp-action="Index" style="display:block;text-align:center;color:var(--text-muted);font-size:13px;margin-top:12px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
-                ← Continue Shopping
-            </a>
+                                        <div class="d-flex align-items-center gap-4 flex-wrap">
+                                            <div class="elite-qty-selector">
+                                                <button type="button" data-action="decrease" class="cm-btn-outline btn-sm">−</button>
+                                                <input type="number" value="@item.Quantity" readonly class="form-control form-control-sm bg-transparent border-0 text-white" style="width: 50px; text-align: center;">
+                                                <button type="button" data-action="increase" class="cm-btn-outline btn-sm">+</button>
+                                            </div>
+
+                                            <div class="text-end" style="min-width: 120px;">
+                                                <div class="text-warning fw-900 fs-5 cart-line-total">₱@lineTotal.ToString("N2")</div>
+                                                <div class="x-small text-white-50">@item.Quantity × ₱@item.Price.ToString("N2")</div>
+                                                <form asp-controller="Cart" asp-action="RemoveFromCart" method="post" class="mt-1">
+                                                    <input type="hidden" name="cartItemId" value="@item.CartItemId" />
+                                                    <button type="submit" class="cm-btn-outline text-danger p-0 border-0 bg-transparent x-small fw-700">
+                                                        <i class="bi bi-trash3"></i> Remove
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="col-lg-4 animate-fade-in delay-2">
+                <div class="glass-card p-4 p-md-5 sticky-top" style="top: 100px; border: 1px solid rgba(255, 215, 0, 0.15);">
+                    <h4 class="text-white fw-800 mb-4">Order summary</h4>
+
+                    <div class="summary-details mb-4">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-white-50 fw-600">Subtotal</span>
+                            <span class="text-white fw-700" id="cartSubtotal">₱@Model.Total.ToString("N2")</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-white-50 fw-600">Platform fee</span>
+                            <span class="text-success fw-800">FREE</span>
+                        </div>
+                    </div>
+
+                    <hr class="opacity-10 mb-4">
+
+                    <div class="d-flex justify-content-between align-items-end mb-5">
+                        <span class="text-white fw-800 fs-5">Total</span>
+                        <div class="text-warning fw-900 fs-2" id="cartTotal">₱@Model.Total.ToString("N2")</div>
+                    </div>
+
+                    <a asp-controller="Order" asp-action="Checkout" class="cm-btn-primary w-100 py-3 justify-content-center fs-5 mb-3 shadow-lg">
+                        Proceed to checkout <i class="bi bi-shield-check ms-2"></i>
+                    </a>
+                    <p class="x-small text-center text-white-50 mb-0">Matches the navbar cart subtotal.</p>
+                </div>
+            </div>
         </div>
     }
     else
     {
-        <div class="cart-empty animate-in d1">
-            <span class="cart-empty-icon">🛒</span>
-            <h3>Your cart is empty</h3>
-            <p>Browse the marketplace to find great deals!</p>
-            <a asp-controller="UserDashboard" asp-action="Index" class="btn-enter" style="display:inline-block;margin-top:16px;padding:12px 24px;">Browse Shop</a>
+        <div class="text-center py-5 animate-fade-in">
+            <div class="glass-card p-5 d-inline-block" style="max-width: 500px;">
+                <div class="empty-cart-icon mb-4">
+                    <i class="bi bi-cart-x fs-1 text-white opacity-25"></i>
+                </div>
+                <h2 class="text-white fw-800 mb-3">Your cart is empty</h2>
+                <p class="text-white-50 mb-4">Add items from any stall—use <strong class="text-white">Add to cart</strong> or the bag icon in the header.</p>
+                <a asp-controller="UserDashboard" asp-action="Index" class="cm-btn-primary px-5 py-3">
+                    Start shopping <i class="bi bi-shop ms-2"></i>
+                </a>
+            </div>
         </div>
     }
 </div>

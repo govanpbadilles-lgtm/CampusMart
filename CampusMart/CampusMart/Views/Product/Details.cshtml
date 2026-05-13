@@ -4,100 +4,134 @@
     Layout = "~/Views/Shared/_UserLayout.cshtml";
 }
 
-<div class="dashboard-container">
-    <div class="page-header animate-in">
-        <a asp-controller="HomeUser" asp-action="Index" class="back-btn">←</a>
-        <div><h1 class="page-title">Product Details</h1><p class="page-subtitle">@Model.CategoryName</p></div>
-    </div>
+<div class="container-xl py-5">
+    <!-- PRODUCT BREADCRUMB -->
+    <nav class="mb-4 animate-fade-in">
+        <a asp-controller="UserDashboard" asp-action="Index" class="cm-btn-outline py-2 px-3 fs-7">
+            <i class="bi bi-arrow-left me-2"></i> Back to Marketplace
+        </a>
+    </nav>
 
-    <div class="product-detail animate-in d1">
-        <div class="product-detail-grid">
-            <!-- Image Gallery -->
-            <div class="product-gallery">
-                <div class="product-main-img">
-                    <img src="@(Model.ImageUrl ?? "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=800&auto=format&fit=crop")" alt="@Model.Name" id="mainProductImage">
-                    <span class="product-category-tag">@Model.CategoryName</span>
+    <div class="glass-card overflow-hidden animate-fade-in delay-1">
+        <div class="row g-0">
+            <!-- Product Gallery -->
+            <div class="col-lg-6">
+                <div class="product-gallery-elite h-100">
+                    <div class="main-img-wrap position-relative">
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            <img src="@Model.ImageUrl" alt="@Model.Name" class="product-hero-img" id="mainProductImage">
+                        }
+                        else
+                        {
+                            <div class="product-hero-img d-flex align-items-center justify-content-center bg-dark" id="mainProductImage" style="height: 100%;">
+                                <i class="bi bi-box fs-1 text-muted opacity-25"></i>
+                            </div>
+                        }
+                        <span class="product-badge-elite">@Model.CategoryName</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Product Info -->
-            <div class="product-info-panel">
-                <div class="product-info-header">
-                    <h1 class="product-detail-name">@Model.Name</h1>
-                    <div class="product-detail-price">$@Model.Price.ToString("F2")</div>
-                </div>
-
-                <div class="product-meta-row">
-                    <div class="product-meta-item">
-                        <span class="product-meta-icon">📦</span>
+            <div class="col-lg-6">
+                <div class="p-4 p-md-5">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <div class="product-meta-label">Stock</div>
-                            <div class="product-meta-value">@Model.Stock available</div>
+                            <h1 class="product-title-elite mb-1">@Model.Name</h1>
+                            <p class="text-muted small mb-0"><i class="bi bi-shop text-warning"></i> Available at official campus stall</p>
+                        </div>
+                        <div class="product-price-elite">₱@Model.Price.ToString("N2")</div>
+                    </div>
+
+                    <hr class="opacity-10 my-4">
+
+                    <div class="product-specs-grid mb-4">
+                        <div class="spec-item">
+                            <span class="spec-label">Stock Status</span>
+                            <span class="spec-value @(Model.Stock > 0 ? "text-success" : "text-danger")">
+                                <i class="bi @(Model.Stock > 0 ? "bi-check-circle-fill" : "bi-x-circle-fill")"></i>
+                                @(Model.Stock > 0 ? $"{Model.Stock} Units Available" : "Out of Stock")
+                            </span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Official Item</span>
+                            <span class="spec-value text-white">Verified</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Platform Verified</span>
+                            <span class="spec-value text-warning"><i class="bi bi-patch-check-fill"></i> Secure Marketplace</span>
                         </div>
                     </div>
-                    <div class="product-meta-item">
-                        <span class="product-meta-icon">🏷️</span>
-                        <div>
-                            <div class="product-meta-label">Category</div>
-                            <div class="product-meta-value">@Model.CategoryName</div>
+
+                    <div class="product-desc-elite mb-5">
+                        <h6 class="fw-800 text-white text-uppercase letter-spacing-1 mb-3">About this item</h6>
+                        <p class="text-white-50 leading-relaxed">@(Model.Description ?? "This premium campus listing is currently being reviewed for detailed specifications. Purchase with confidence through our secure marketplace system.")</p>
+                    </div>
+
+                    <div class="product-purchase-box glass-card p-4">
+                        <form asp-controller="Cart" asp-action="AddToCart" method="post" class="row g-3">
+                            <input type="hidden" name="productId" value="@Model.Id" />
+                            <div class="col-4 col-md-3">
+                                <label class="small text-muted fw-700 mb-2 d-block">Quantity</label>
+                                <div class="elite-qty-selector">
+                                    <button type="button" onclick="changeQty(-1)">−</button>
+                                    <input type="number" name="quantity" value="1" min="1" max="@Model.Stock" id="qtyInput" readonly>
+                                    <button type="button" onclick="changeQty(1)">+</button>
+                                </div>
+                            </div>
+                            <div class="col-8 col-md-9 d-flex align-items-end">
+                                <button type="submit" class="cm-btn-primary w-100 py-3 justify-content-center" @(Model.Stock <= 0 ? "disabled" : "")>
+                                    <i class="bi bi-bag-plus-fill me-2"></i> Add to Cart
+                                </button>
+                            </div>
+                        </form>
+                        <div class="mt-4 d-flex justify-content-center gap-4 border-top border-subtle pt-3">
+                            <div class="text-muted x-small"><i class="bi bi-shield-lock-fill text-success"></i> Secure Pay</div>
+                            <div class="text-muted x-small"><i class="bi bi-truck text-warning"></i> Campus Pickup</div>
+                            <div class="text-muted x-small"><i class="bi bi-arrow-counterclockwise text-primary"></i> 24h Return</div>
                         </div>
                     </div>
-                    <div class="product-meta-item">
-                        <span class="product-meta-icon">⭐</span>
-                        <div>
-                            <div class="product-meta-label">Rating</div>
-                            <div class="product-meta-value">4.8 (24 reviews)</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-description">
-                    <h3 style="font-size:14px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">Description</h3>
-                    <p>@(Model.Description ?? "No description available for this product.")</p>
-                </div>
-
-                <div class="product-actions">
-                    <form asp-controller="Cart" asp-action="AddToCart" method="post" style="display:flex;gap:12px;width:100%;">
-                        <input type="hidden" name="productId" value="@Model.Id" />
-                        <div class="product-qty-selector">
-                            <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
-                            <input type="number" name="quantity" value="1" min="1" max="@Model.Stock" class="qty-input" id="qtyInput" readonly>
-                            <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
-                        </div>
-                        <button type="submit" class="btn-add-cart">
-                            🛒 Add to Cart
-                        </button>
-                    </form>
-                </div>
-
-                <div class="product-guarantees">
-                    <div class="guarantee-item"><span>🔒</span> Secure Transaction</div>
-                    <div class="guarantee-item"><span>🔄</span> Easy Returns</div>
-                    <div class="guarantee-item"><span>🚚</span> Campus Delivery</div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- RELATED PRODUCTS -->
     @if (Model.RelatedProducts.Any())
     {
-        <div class="animate-in d3" style="margin-top:40px;">
-            <div class="section-header">
-                <h2 class="section-title">Related Products</h2>
-                <a asp-controller="HomeUser" asp-action="Index" class="view-all">VIEW ALL</a>
+        <div class="mt-5 animate-fade-in delay-2">
+            <div class="d-flex justify-content-between align-items-end mb-4">
+                <div>
+                    <h3 class="fw-800 text-white mb-1">Related Items</h3>
+                    <p class="text-muted small mb-0">More essentials from this category.</p>
+                </div>
+                <a asp-controller="UserDashboard" asp-action="Index" class="text-warning fw-700 small text-decoration-none">View All Marketplace <i class="bi bi-arrow-right"></i></a>
             </div>
-            <div class="related-grid">
+            
+            <div class="row g-4">
                 @foreach (var rp in Model.RelatedProducts)
                 {
-                    <a asp-controller="Product" asp-action="Details" asp-route-id="@rp.Id" class="related-card" style="text-decoration:none;">
-                        <div class="related-img">
-                            <img src="@(rp.ImageUrl ?? "https://via.placeholder.com/200")" alt="@rp.Name">
-                        </div>
-                        <div class="related-info">
-                            <div class="related-name">@rp.Name</div>
-                            <div class="related-price">$@rp.Price.ToString("F2")</div>
-                        </div>
-                    </a>
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                <a asp-controller="Product" asp-action="Details" asp-route-id="@rp.Id" class="cm-card glass-card text-decoration-none h-100">
+                    <div class="cm-card-img-wrap" style="height: 140px;">
+                        @if (!string.IsNullOrEmpty(rp.ImageUrl))
+                        {
+                            <img src="@rp.ImageUrl" alt="@rp.Name" class="cm-card-img">
+                        }
+                        else
+                        {
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-dark">
+                                <i class="bi bi-box-seam fs-2 text-muted opacity-50"></i>
+                            </div>
+                        }
+                    </div>
+                    <div class="cm-card-body p-3">
+                        <h6 class="text-white fw-700 mb-1">@rp.Name</h6>
+                        <div class="text-warning fw-800">₱@rp.Price.ToString("N2")</div>
+                    </div>
+                </a>
+                    </div>
                 }
             </div>
         </div>

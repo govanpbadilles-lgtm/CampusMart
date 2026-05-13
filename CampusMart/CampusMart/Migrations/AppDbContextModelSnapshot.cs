@@ -22,33 +22,6 @@ namespace CampusMart.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("CampusMart.Models.Entities.AcademicResource", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AcademicResources");
-                });
-
             modelBuilder.Entity("CampusMart.Models.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -185,13 +158,10 @@ namespace CampusMart.Migrations
                     b.Property<int>("CartId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ProductId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("StallItemId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -199,8 +169,6 @@ namespace CampusMart.Migrations
                     b.HasIndex("CartId");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("StallItemId");
 
                     b.ToTable("CartItems");
                 });
@@ -224,7 +192,12 @@ namespace CampusMart.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("StallId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("StallId");
 
                     b.ToTable("Categories");
 
@@ -281,11 +254,19 @@ namespace CampusMart.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Building")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<int>("Capacity")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("FloorNumber")
                         .HasColumnType("int");
@@ -349,13 +330,10 @@ namespace CampusMart.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("ProductId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("StallItemId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -363,8 +341,6 @@ namespace CampusMart.Migrations
                     b.HasIndex("OrderId");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("StallItemId");
 
                     b.ToTable("OrderItems");
                 });
@@ -380,127 +356,6 @@ namespace CampusMart.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Condition")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("SellerId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Stock")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("SellerId");
-
-                    b.ToTable("Products");
-                });
-
-            modelBuilder.Entity("CampusMart.Models.Entities.Rental", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RentalItemId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RentalItemId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Rentals");
-                });
-
-            modelBuilder.Entity("CampusMart.Models.Entities.RentalCategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Icon")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("RentalCategories");
-                });
-
-            modelBuilder.Entity("CampusMart.Models.Entities.RentalItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AvailableStock")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -513,33 +368,27 @@ namespace CampusMart.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<decimal>("PricePerUnit")
+                    b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("PriceUnit")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<int>("RentalCategoryId")
+                    b.Property<int>("StallId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TotalStock")
+                    b.Property<int>("Stock")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RentalCategoryId");
+                    b.HasIndex("CategoryId");
 
-                    b.ToTable("RentalItems");
+                    b.HasIndex("StallId");
+
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("CampusMart.Models.Entities.SavedItem", b =>
@@ -553,10 +402,7 @@ namespace CampusMart.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("StallItemId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<string>("UserId")
@@ -566,8 +412,6 @@ namespace CampusMart.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("StallItemId");
 
                     b.HasIndex("UserId");
 
@@ -636,7 +480,7 @@ namespace CampusMart.Migrations
                     b.ToTable("Stalls");
                 });
 
-            modelBuilder.Entity("CampusMart.Models.Entities.StallItem", b =>
+            modelBuilder.Entity("CampusMart.Models.Entities.Transaction", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -644,26 +488,10 @@ namespace CampusMart.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("StallId")
+                    b.Property<int>("Quantity")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -671,14 +499,23 @@ namespace CampusMart.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("Stock")
-                        .HasColumnType("int");
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StallId");
+                    b.HasIndex("ProductId");
 
-                    b.ToTable("StallItems");
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -835,17 +672,23 @@ namespace CampusMart.Migrations
 
                     b.HasOne("CampusMart.Models.Entities.Product", "Product")
                         .WithMany("CartItems")
-                        .HasForeignKey("ProductId");
-
-                    b.HasOne("CampusMart.Models.Entities.StallItem", "StallItem")
-                        .WithMany()
-                        .HasForeignKey("StallItemId");
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Cart");
 
                     b.Navigation("Product");
+                });
 
-                    b.Navigation("StallItem");
+            modelBuilder.Entity("CampusMart.Models.Entities.Category", b =>
+                {
+                    b.HasOne("CampusMart.Models.Entities.Stall", "Stall")
+                        .WithMany("Categories")
+                        .HasForeignKey("StallId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Stall");
                 });
 
             modelBuilder.Entity("CampusMart.Models.Entities.Order", b =>
@@ -869,17 +712,13 @@ namespace CampusMart.Migrations
 
                     b.HasOne("CampusMart.Models.Entities.Product", "Product")
                         .WithMany("OrderItems")
-                        .HasForeignKey("ProductId");
-
-                    b.HasOne("CampusMart.Models.Entities.StallItem", "StallItem")
-                        .WithMany()
-                        .HasForeignKey("StallItemId");
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Order");
 
                     b.Navigation("Product");
-
-                    b.Navigation("StallItem");
                 });
 
             modelBuilder.Entity("CampusMart.Models.Entities.Product", b =>
@@ -890,43 +729,15 @@ namespace CampusMart.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CampusMart.Models.Entities.ApplicationUser", "Seller")
-                        .WithMany()
-                        .HasForeignKey("SellerId");
+                    b.HasOne("CampusMart.Models.Entities.Stall", "Stall")
+                        .WithMany("Products")
+                        .HasForeignKey("StallId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Category");
 
-                    b.Navigation("Seller");
-                });
-
-            modelBuilder.Entity("CampusMart.Models.Entities.Rental", b =>
-                {
-                    b.HasOne("CampusMart.Models.Entities.RentalItem", "RentalItem")
-                        .WithMany("Rentals")
-                        .HasForeignKey("RentalItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CampusMart.Models.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("RentalItem");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("CampusMart.Models.Entities.RentalItem", b =>
-                {
-                    b.HasOne("CampusMart.Models.Entities.RentalCategory", "RentalCategory")
-                        .WithMany("RentalItems")
-                        .HasForeignKey("RentalCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("RentalCategory");
+                    b.Navigation("Stall");
                 });
 
             modelBuilder.Entity("CampusMart.Models.Entities.SavedItem", b =>
@@ -934,12 +745,8 @@ namespace CampusMart.Migrations
                     b.HasOne("CampusMart.Models.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("CampusMart.Models.Entities.StallItem", "StallItem")
-                        .WithMany()
-                        .HasForeignKey("StallItemId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("CampusMart.Models.Entities.ApplicationUser", "User")
                         .WithMany()
@@ -948,8 +755,6 @@ namespace CampusMart.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
-
-                    b.Navigation("StallItem");
 
                     b.Navigation("User");
                 });
@@ -965,15 +770,23 @@ namespace CampusMart.Migrations
                     b.Navigation("Floor");
                 });
 
-            modelBuilder.Entity("CampusMart.Models.Entities.StallItem", b =>
+            modelBuilder.Entity("CampusMart.Models.Entities.Transaction", b =>
                 {
-                    b.HasOne("CampusMart.Models.Entities.Stall", "Stall")
-                        .WithMany("StallItems")
-                        .HasForeignKey("StallId")
+                    b.HasOne("CampusMart.Models.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Stall");
+                    b.HasOne("CampusMart.Models.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1061,19 +874,11 @@ namespace CampusMart.Migrations
                     b.Navigation("OrderItems");
                 });
 
-            modelBuilder.Entity("CampusMart.Models.Entities.RentalCategory", b =>
-                {
-                    b.Navigation("RentalItems");
-                });
-
-            modelBuilder.Entity("CampusMart.Models.Entities.RentalItem", b =>
-                {
-                    b.Navigation("Rentals");
-                });
-
             modelBuilder.Entity("CampusMart.Models.Entities.Stall", b =>
                 {
-                    b.Navigation("StallItems");
+                    b.Navigation("Categories");
+
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

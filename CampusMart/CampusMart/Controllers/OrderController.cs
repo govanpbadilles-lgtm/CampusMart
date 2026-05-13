@@ -20,8 +20,28 @@ namespace CampusMart.Controllers
             _userManager = userManager;
         }
 
-        // Order History
-        public async Task<IActionResult> Index()
+        private static OrderSummaryViewModel MapOrderToSummary(Order order)
+        {
+            return new OrderSummaryViewModel
+            {
+                OrderId = order.Id,
+                CreatedAt = order.CreatedAt,
+                Status = order.Status,
+                TotalAmount = order.TotalAmount,
+                PaymentMethod = order.PaymentMethod,
+                ShippingAddress = order.ShippingAddress,
+                ItemCount = order.OrderItems?.Sum(oi => oi.Quantity) ?? 0,
+                Items = order.OrderItems?.Select(oi => new OrderItemDetailViewModel
+                {
+                    ProductName = oi.Product?.Name ?? "Unknown",
+                    ImageUrl = oi.Product?.ImageUrl,
+                    Price = oi.Price,
+                    Quantity = oi.Quantity
+                }).ToList() ?? new()
+            };
+        }
+
+        public async Task<IActionResult> History(int? openReceipt = null)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login", "Account");
@@ -30,8 +50,6 @@ namespace CampusMart.Controllers
                 .Where(o => o.UserId == user.Id)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.StallItem)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
@@ -48,55 +66,41 @@ namespace CampusMart.Controllers
                     ItemCount = o.OrderItems?.Sum(oi => oi.Quantity) ?? 0,
                     Items = o.OrderItems?.Select(oi => new OrderItemDetailViewModel
                     {
-                        ProductName = oi.Product?.Name ?? oi.StallItem?.Name ?? "Unknown",
-                        ImageUrl = oi.Product?.ImageUrl ?? oi.StallItem?.ImageUrl,
+                        ProductName = oi.Product?.Name ?? "Unknown",
+                        ImageUrl = oi.Product?.ImageUrl,
                         Price = oi.Price,
                         Quantity = oi.Quantity
                     }).ToList() ?? new()
                 }).ToList()
             };
 
+            ViewBag.OpenReceiptId = openReceipt;
             return View(model);
         }
 
-        // Order Detail / Receipt
-        public async Task<IActionResult> Details(int id)
+        /// <summary>Legacy URL: sends users to purchase history with receipt modal.</summary>
+        public IActionResult Details(int id)
+        {
+            return RedirectToAction(nameof(History), new { openReceipt = id });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ReceiptBody(int id)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return RedirectToAction("Login", "Account");
+            if (user == null) return Unauthorized();
 
             var order = await _db.Orders
                 .Where(o => o.Id == id && o.UserId == user.Id)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.StallItem)
                 .FirstOrDefaultAsync();
 
-            if (order == null) return RedirectToAction("Index");
+            if (order == null) return NotFound();
 
-            var model = new OrderSummaryViewModel
-            {
-                OrderId = order.Id,
-                CreatedAt = order.CreatedAt,
-                Status = order.Status,
-                TotalAmount = order.TotalAmount,
-                PaymentMethod = order.PaymentMethod,
-                ShippingAddress = order.ShippingAddress,
-                ItemCount = order.OrderItems?.Sum(oi => oi.Quantity) ?? 0,
-                Items = order.OrderItems?.Select(oi => new OrderItemDetailViewModel
-                {
-                    ProductName = oi.Product?.Name ?? oi.StallItem?.Name ?? "Unknown",
-                    ImageUrl = oi.Product?.ImageUrl ?? oi.StallItem?.ImageUrl,
-                    Price = oi.Price,
-                    Quantity = oi.Quantity
-                }).ToList() ?? new()
-            };
-
-            return View(model);
+            return PartialView("_ReceiptModalBody", MapOrderToSummary(order));
         }
 
-        // Checkout GET - show checkout page
         [HttpGet]
         public async Task<IActionResult> Checkout()
         {
@@ -107,8 +111,6 @@ namespace CampusMart.Controllers
                 .Include(c => c.CartItems)
                     .ThenInclude(ci => ci.Product)
                         .ThenInclude(p => p.Category)
-                .Include(c => c.CartItems)
-                    .ThenInclude(ci => ci.StallItem)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
             if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
@@ -123,20 +125,17 @@ namespace CampusMart.Controllers
                 {
                     CartItemId = ci.Id,
                     ProductId = ci.ProductId,
-                    StallItemId = ci.StallItemId,
-                    ProductName = ci.Product?.Name ?? ci.StallItem?.Name ?? "Unknown",
-                    ImageUrl = ci.Product?.ImageUrl ?? ci.StallItem?.ImageUrl,
-                    Price = ci.Product?.Price ?? ci.StallItem?.Price ?? 0,
+                    ProductName = ci.Product?.Name ?? "Unknown",
+                    ImageUrl = ci.Product?.ImageUrl,
+                    Price = ci.Product?.Price ?? 0,
                     Quantity = ci.Quantity,
-                    CategoryName = ci.Product?.Category?.Name ?? "Stall Item"
-                }).ToList(),
-                ShippingAddress = ""
+                    CategoryName = ci.Product?.Category?.Name ?? "Uncategorized"
+                }).ToList()
             };
 
             return View(model);
         }
 
-        // Checkout POST - place order (campus purchase - receipt based)
         [HttpPost]
         public async Task<IActionResult> PlaceOrder(CheckoutViewModel model)
         {
@@ -146,8 +145,6 @@ namespace CampusMart.Controllers
             var cart = await _db.Carts
                 .Include(c => c.CartItems)
                     .ThenInclude(ci => ci.Product)
-                .Include(c => c.CartItems)
-                    .ThenInclude(ci => ci.StallItem)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
             if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
@@ -156,7 +153,6 @@ namespace CampusMart.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
-            // Validate stock availability before placing order
             foreach (var ci in cart.CartItems)
             {
                 if (ci.Product != null && ci.Product.Stock < ci.Quantity)
@@ -164,46 +160,57 @@ namespace CampusMart.Controllers
                     TempData["ErrorMessage"] = $"Insufficient stock for {ci.Product.Name}. Only {ci.Product.Stock} available.";
                     return RedirectToAction("Checkout");
                 }
-                if (ci.StallItem != null && ci.StallItem.Stock < ci.Quantity)
+            }
+
+            var method = model.PaymentMethod ?? "Cash";
+            if (method is "GCash" or "Bank Transfer")
+            {
+                if (string.IsNullOrWhiteSpace(model.PaymentAccountMasked))
                 {
-                    TempData["ErrorMessage"] = $"Insufficient stock for {ci.StallItem.Name}. Only {ci.StallItem.Stock} available.";
+                    TempData["ErrorMessage"] = "Please enter and confirm your GCash or bank account details before placing the order.";
                     return RedirectToAction("Checkout");
                 }
             }
 
-            // Build location info from fulfillment method + location
-            var fulfillment = model.FulfillmentMethod ?? "Meet Up";
-            var location = string.IsNullOrWhiteSpace(model.ShippingAddress)
-                ? fulfillment
-                : $"{fulfillment} — {model.ShippingAddress}";
+            var pickupLine = "Campus stall pickup";
+            var detailParts = new List<string> { pickupLine };
+            if (!string.IsNullOrWhiteSpace(model.PaymentAccountMasked))
+                detailParts.Add(model.PaymentAccountMasked.Trim());
+            if (!string.IsNullOrWhiteSpace(model.Notes))
+                detailParts.Add(model.Notes.Trim());
 
             var order = new Order
             {
                 UserId = user.Id,
                 Status = "Confirmed",
-                TotalAmount = (int)cart.CartItems.Sum(ci => (ci.Product?.Price ?? ci.StallItem?.Price ?? 0) * ci.Quantity),
-                ShippingAddress = location,
-                PaymentMethod = model.PaymentMethod ?? "Cash",
+                TotalAmount = cart.CartItems.Sum(ci => (ci.Product?.Price ?? 0) * ci.Quantity),
+                ShippingAddress = string.Join(" · ", detailParts),
+                PaymentMethod = method,
                 CreatedAt = DateTime.UtcNow,
                 OrderItems = cart.CartItems.Select(ci => new OrderItem
                 {
                     ProductId = ci.ProductId,
-                    StallItemId = ci.StallItemId,
                     Quantity = ci.Quantity,
-                    Price = ci.Product?.Price ?? ci.StallItem?.Price ?? 0
+                    Price = ci.Product?.Price ?? 0
                 }).ToList()
             };
 
-            // Deduct stock for each item
             foreach (var ci in cart.CartItems)
             {
                 if (ci.Product != null)
                 {
                     ci.Product.Stock -= ci.Quantity;
-                }
-                if (ci.StallItem != null)
-                {
-                    ci.StallItem.Stock -= ci.Quantity;
+
+                    var transaction = new Transaction
+                    {
+                        UserId = user.Id,
+                        ProductId = ci.ProductId,
+                        Quantity = ci.Quantity,
+                        TotalPrice = (ci.Product?.Price ?? 0) * ci.Quantity,
+                        TransactionDate = DateTime.UtcNow,
+                        Status = "Confirmed"
+                    };
+                    _db.Transactions.Add(transaction);
                 }
             }
 
@@ -211,8 +218,8 @@ namespace CampusMart.Controllers
             _db.CartItems.RemoveRange(cart.CartItems);
             await _db.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Purchase confirmed! Your receipt has been generated.";
-            return RedirectToAction("Details", new { id = order.Id });
+            TempData["SuccessMessage"] = "Purchase confirmed! Your receipt is ready below.";
+            return RedirectToAction(nameof(History), new { openReceipt = order.Id });
         }
     }
 }

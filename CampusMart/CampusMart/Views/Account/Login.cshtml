@@ -12,16 +12,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="~/css/auth.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
     <nav class="navbar-global">
-        <a asp-controller="Home" asp-action="HomeIndex" class="navbar-brand">🛒 CampusMart</a>
-        <a asp-controller="Home" asp-action="HomeIndex" class="back-link">← Back to Home</a>
+        <a asp-controller="Home" asp-action="HomeIndex" class="navbar-brand"><i class="bi bi-shop"></i> CampusMart</a>
+        <a asp-controller="Home" asp-action="HomeIndex" class="back-link"><i class="bi bi-arrow-left"></i> Back to Home</a>
     </nav>
-
-    <div class="toast-global" id="toast"></div>
 
     <div class="auth-container">
         <div class="auth-card">
@@ -31,27 +31,27 @@
             <form asp-action="Login" asp-controller="Account" method="post" autocomplete="off">
                 <div asp-validation-summary="ModelOnly" class="validation-error" style="margin-bottom: 15px; color: #ff8f8f; text-align: center;"></div>
                 <div class="form-group">
-                    <label asp-for="StudentId">Student ID Number</label>
+                    <label asp-for="StudentId"><i class="bi bi-person-id-card"></i> Student ID Number</label>
                     <input asp-for="StudentId" class="input-glass" placeholder="e.g. 2024-12345" autocomplete="off" required>
                     <span asp-validation-for="StudentId" class="validation-error"></span>
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="Password">Password</label>
+                    <label asp-for="Password"><i class="bi bi-lock-fill"></i> Password</label>
                     <div class="password-group">
-                        <input asp-for="Password" class="input-glass" placeholder="••••••••" autocomplete="off" required>
+                        <input asp-for="Password" class="input-glass" placeholder="Enter your password" autocomplete="off" required>
                         <button type="button" class="toggle-password" onclick="togglePassword('Password', this)" tabindex="-1" title="Toggle password visibility">
-                            <svg id="eyeIcon-Password" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            <i class="bi bi-eye-fill"></i>
                         </button>
                     </div>
                     <span asp-validation-for="Password" class="validation-error"></span>
                 </div>
 
                 <div class="forgot-password">
-                    <a asp-controller="Account" asp-action="ForgotPassword">Forgot Password?</a>
+                    <a asp-controller="Account" asp-action="ForgotPassword"><i class="bi bi-question-circle"></i> Forgot Password?</a>
                 </div>
 
-                <button type="submit" class="btn-submit">Sign In →</button>
+                <button type="submit" class="btn-submit"><i class="bi bi-box-arrow-in-right"></i> Sign In</button>
 
                 <div class="auth-link">
                     Don't have an account? <a asp-action="Register" asp-controller="Account">Sign up here</a>
@@ -62,50 +62,44 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        const eyeOpenSvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
-        const eyeClosedSvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18m0 0L3 3m18 0l-18 18M10.477 10.477A3 3 0 0113.5 13.5M6.357 6.357A9.965 9.965 0 012.458 12c1.274 4.057 5.065 7 9.542 7a9.966 9.966 0 005.643-1.745"/></svg>`;
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        function showToast(message, type = 'success') {
+            Toast.fire({
+                icon: type,
+                title: message
+            });
+        }
 
         function togglePassword(fieldId, button) {
             const input = document.querySelector(`input[name="${fieldId}"]`);
-            const icon = button.querySelector('svg');
-            
+            const icon = button.querySelector('i');
+
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.outerHTML = eyeClosedSvg;
+                icon.classList.remove('bi-eye-fill');
+                icon.classList.add('bi-eye-slash-fill');
             } else {
                 input.type = 'password';
-                icon.outerHTML = eyeOpenSvg;
+                icon.classList.remove('bi-eye-slash-fill');
+                icon.classList.add('bi-eye-fill');
             }
         }
-
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const icon = type === 'success' ? '✅' : '❌';
-            toast.innerHTML = `${icon} ${message}`;
-            
-            if (type === 'error') {
-                toast.style.background = 'rgba(239, 68, 68, 0.95)';
-            } else {
-                toast.style.background = 'rgba(34, 197, 94, 0.95)';
-            }
-            
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 4000);
-        }
-
-        // Form submission handling (you can integrate with actual backend)
-        document.querySelector('form').addEventListener('submit', function(e) {
-            // Uncomment for demo toast
-            // showToast('Logging in...', 'success');
-        });
 
         // Clear input values on page load
         window.addEventListener('load', () => {
-            document.querySelectorAll('input[type="text"], input[type="password"]').forEach(el => {
-                el.value = '';
-            });
-
             @if (TempData["SuccessMessage"] != null)
             {
                 <text>showToast('@TempData["SuccessMessage"]', 'success');</text>

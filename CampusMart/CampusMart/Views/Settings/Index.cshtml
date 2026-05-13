@@ -1,51 +1,657 @@
+@model CampusMart.Models.ViewModels.User.ProfileViewModel
+
 @{
-    ViewData["Title"] = "Account Settings";
+    ViewData["Title"] = "Personal Settings";
     Layout = "~/Views/Shared/_UserLayout.cshtml";
 }
 
-<div class="profile-page">
-    <div class="page-header animate-in">
-        <a asp-controller="UserDashboard" asp-action="Index" class="back-btn" title="Back to Dashboard">←</a>
-        <div><h1 class="page-title">Account Settings</h1><p class="page-subtitle">Manage your app preferences and security</p></div>
-    </div>
+<style>
+    .settings-container {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        min-height: 100vh;
+        padding: 40px 20px;
+    }
 
-    <div class="form-section animate-in d1">
-        <div class="form-section-header">
-            <span class="form-section-icon">⚙️</span>
-            <h3 class="form-section-title">Preferences</h3>
+    .settings-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+    }
+
+    .header-content h1 {
+        color: #ffc107;
+        font-weight: 700;
+        margin: 0;
+        font-size: 2.5rem;
+    }
+
+    .header-subtitle {
+        color: #b0b0b0;
+        font-size: 0.95rem;
+        margin: 5px 0 0 0;
+    }
+
+    .settings-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 15px;
+        color: #fff;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        background: rgba(255, 193, 7, 0.1);
+        border-left: 3px solid #ffc107;
+        text-decoration: none;
+        font-size: 0.95rem;
+    }
+
+    .sidebar-item:hover {
+        background: rgba(255, 193, 7, 0.15);
+        transform: translateX(5px);
+    }
+
+    .sidebar-item i {
+        font-size: 1.1rem;
+    }
+
+    .content-section {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 193, 7, 0.2);
+        border-radius: 12px;
+        padding: 35px;
+        margin-bottom: 30px;
+        backdrop-filter: blur(10px);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .section-header i {
+        font-size: 1.4rem;
+        color: #ffc107;
+    }
+
+    .section-header h3 {
+        color: #fff;
+        font-weight: 700;
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .profile-card {
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 193, 7, 0.2);
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        display: flex;
+        gap: 25px;
+        align-items: center;
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+    }
+
+    .profile-avatar-container {
+        flex-shrink: 0;
+        position: relative;
+        width: 80px;
+        height: 80px;
+    }
+
+    .profile-avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #ffc107, #ff9800);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 700;
+        color: #1a1a2e;
+        overflow: hidden;
+        border: 3px solid #ffc107;
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .avatar-upload-btn {
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        background: #ffc107;
+        border: 2px solid #1a1a2e;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1a1a2e;
+        font-size: 0.8rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        z-index: 2;
+    }
+
+    .avatar-upload-btn:hover {
+        background: #ffb300;
+        transform: scale(1.1);
+    }
+
+    .profile-info {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        min-width: 0; /* Prevent overflow */
+        flex-wrap: wrap;
+    }
+
+    .preview-thumb {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        border: 1px solid #ffc107;
+        object-fit: cover;
+        display: none;
+    }
+
+    .profile-name-section {
+        flex: 1;
+    }
+
+    .profile-name {
+        color: #fff;
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+    }
+
+    .profile-role {
+        color: #ffc107;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .profile-details {
+        display: flex;
+        gap: 30px;
+        align-items: center;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        white-space: nowrap;
+    }
+
+    .detail-label {
+        color: #b0b0b0;
+        font-size: 0.8rem;
+        margin-bottom: 2px;
+    }
+
+    .detail-value {
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 10px;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+
+    .btn-change {
+        background: #ffc107;
+        color: #1a1a2e;
+        border: none;
+        padding: 8px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .btn-change:hover {
+        background: #ffb300;
+        transform: translateY(-2px);
+    }
+
+    .btn-remove {
+        background: transparent;
+        color: #b0b0b0;
+        border: 1px solid #b0b0b0;
+        padding: 8px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .btn-remove:hover {
+        color: #ff6b6b;
+        border-color: #ff6b6b;
+    }
+
+    .form-field {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 193, 7, 0.3);
+        color: #fff;
+        padding: 12px 15px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.12);
+        border-color: #ffc107;
+        box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+    }
+
+    .form-input::placeholder {
+        color: #808080;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .btn-primary {
+        background: #ffc107;
+        color: #1a1a2e;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: #ffb300;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(255, 193, 7, 0.3);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: #fff;
+        border: 1px solid #808080;
+        padding: 12px 30px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        border-color: #fff;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .alert-success {
+        background: rgba(40, 167, 69, 0.2);
+        border: 1px solid #28a745;
+        color: #28a745;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .alert-error {
+        background: rgba(220, 53, 69, 0.2);
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .back-button {
+        color: #ffc107;
+        text-decoration: none;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .back-button:hover {
+        gap: 12px;
+    }
+
+    @@media (max-width: 992px) {
+        .settings-container {
+            padding: 20px 10px;
+        }
+
+        .settings-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .header-content h1 {
+            font-size: 2rem;
+        }
+
+        .profile-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .profile-info {
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .profile-details {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .button-group {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="settings-container">
+    <div class="container-xl">
+        <!-- Page Header -->
+        <div class="settings-header">
+            <div class="header-content">
+                <h1>Personal Settings</h1>
+                <p class="header-subtitle">Control your public presence and security settings</p>
+            </div>
+            <a asp-controller="UserDashboard" asp-action="Index" class="back-button">
+                <i class="bi bi-arrow-left"></i> Dashboard
+            </a>
         </div>
-        <div class="form-grid">
-            <div class="form-group full-width" style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <label class="form-label" style="margin:0;">Email Notifications</label>
-                    <div style="font-size:12px; color:var(--text-muted);">Receive updates about your orders and campus deals.</div>
-                </div>
-                <input type="checkbox" style="width: 20px; height: 20px;" checked>
+
+        <div class="row g-4">
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <div class="settings-sidebar">
+                <a href="#personal-info" class="sidebar-item">
+                    <i class="bi bi-person-fill"></i>
+                    <span>Personal Info</span>
+                </a>
+                <a href="#contact-access" class="sidebar-item">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>Contact Access</span>
+                </a>
+                <a href="#student-info" class="sidebar-item">
+                    <i class="bi bi-mortarboard"></i>
+                    <span>Student Info</span>
+                </a>
+                <a href="#communication" class="sidebar-item">
+                    <i class="bi bi-telephone"></i>
+                    <span>Communication</span>
+                </a>
+                <a href="#profile-narrative" class="sidebar-item">
+                    <i class="bi bi-pencil-square"></i>
+                    <span>Profile Narrative</span>
+                </a>
             </div>
-            <div class="form-group full-width" style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <label class="form-label" style="margin:0;">Dark Mode</label>
-                    <div style="font-size:12px; color:var(--text-muted);">CampusMart is built with a premium dark UI by default.</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert-success">
+                    <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
                 </div>
-                <input type="checkbox" style="width: 20px; height: 20px;" checked disabled>
-            </div>
+            }
+
+            <form method="post" asp-action="UpdatePersonalInfo" enctype="multipart/form-data">
+                <!-- PERSONAL INFO SECTION -->
+                <div class="content-section" id="personal-info">
+                    <div class="section-header">
+                        <i class="bi bi-person-fill"></i>
+                        <h3>Personal Info</h3>
+                    </div>
+
+                    <!-- Profile Card with Avatar -->
+                    <div class="profile-card">
+                        <div class="profile-avatar-container">
+                            <div class="profile-avatar" id="avatarDisplay">
+                                @if (!string.IsNullOrEmpty(Model?.AvatarUrl))
+                                {
+                                    <img src="@Model.AvatarUrl" alt="Avatar" />
+                                }
+                                else
+                                {
+                                    @if (!string.IsNullOrEmpty(Model?.FirstName))
+                                    {
+                                        @Model.FirstName[0].ToString().ToUpper()
+                                    }
+                                    else
+                                    {
+                                        <text>JD</text>
+                                    }
+                                }
+                            </div>
+                            <button type="button" class="avatar-upload-btn" onclick="document.getElementById('avatarFile').click();">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <input type="file" id="avatarFile" name="AvatarFile" accept=".jpg,.jpeg,.png,.gif,.webp" class="avatar-upload-input" />
+                        </div>
+
+                        <div class="profile-info">
+                            <div class="profile-name-section">
+                                <p class="profile-name">@Model?.FirstName @Model?.LastName</p>
+                                <p class="profile-role">
+                                    <i class="bi bi-shield-check"></i>
+                                    ELITE STUDENT
+                                </p>
+                            </div>
+
+                            <div class="profile-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Student ID</span>
+                                    <span class="detail-value">@Model?.StudentId</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">College</span>
+                                    <span class="detail-value">@Model?.Department</span>
+                                </div>
+                            </div>
+
+                            <div class="button-group">
+                                <img id="smallPreview" class="preview-thumb" src="" alt="Preview" />
+                                <button type="button" class="btn-change" onclick="enableEditMode();">Upload an image</button>
+                                <button type="button" class="btn-remove" onclick="removeAvatar(event);">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTACT ACCESS SECTION -->
+                <div class="content-section" id="contact-access">
+                    <div class="section-header">
+                        <i class="bi bi-shield-lock"></i>
+                        <h3>Contact Access</h3>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label class="form-label">System Email</label>
+                            <input type="email" class="form-input" value="@Model?.Email" disabled />
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Contact Number</label>
+                            <input type="tel" class="form-input" name="Phone" value="@Model?.Phone" placeholder="+63 (XXX) XXX XXXX" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STUDENT INFO SECTION -->
+                <div class="content-section" id="student-info">
+                    <div class="section-header">
+                        <i class="bi bi-mortarboard"></i>
+                        <h3>Student Info</h3>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label class="form-label">Year</label>
+                            <input type="text" class="form-input" name="YearLevel" value="@Model?.YearLevel" placeholder="1st Year" />
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Section</label>
+                            <input type="text" class="form-input" name="Section" value="@Model?.Section" placeholder="e.g. BSCS-2A" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COMMUNICATION SECTION -->
+                <div class="content-section" id="communication">
+                    <div class="section-header">
+                        <i class="bi bi-telephone"></i>
+                        <h3>Communication</h3>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Residential Address</label>
+                        <input type="text" class="form-input" name="Address" value="@Model?.Address" placeholder="Enter your full residential address" />
+                    </div>
+                </div>
+
+                <!-- PROFILE NARRATIVE SECTION -->
+                <div class="content-section" id="profile-narrative">
+                    <div class="section-header">
+                        <i class="bi bi-pencil-square"></i>
+                        <h3>Profile Narrative</h3>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Professional Summary</label>
+                        <textarea class="form-input" name="Bio" rows="5" placeholder="A brief introduction for other students to see...">@Model?.Bio</textarea>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 12px; margin-top: 30px;">
+                    <button type="submit" class="btn-primary">
+                        <i class="bi bi-check-circle"></i> Save Changes
+                    </button>
+                    <a asp-controller="UserDashboard" asp-action="Index" class="btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
-
-    <div class="form-section animate-in d2">
-        <div class="form-section-header">
-            <span class="form-section-icon">🔒</span>
-            <h3 class="form-section-title">Security</h3>
-        </div>
-        <div class="form-grid">
-            <div class="form-group full-width">
-                <button class="btn-cancel" style="width: 100%; border: 1px solid var(--border-subtle); color: #fff;">Change Password</button>
-            </div>
-            <div class="form-group full-width">
-                <form asp-controller="Account" asp-action="Logout" method="post">
-                    <button type="submit" class="btn-remove" style="width: 100%;">Sign Out</button>
-                </form>
-            </div>
-        </div>
     </div>
 </div>
+
+<script>
+    function enableEditMode() {
+        document.getElementById('avatarFile').click();
+    }
+
+    function removeAvatar(event) {
+        event.preventDefault();
+        if (confirm('Are you sure you want to remove your profile picture?')) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'RemoveAvatar';
+            input.value = 'true';
+            document.querySelector('form').appendChild(input);
+            document.querySelector('form').submit();
+        }
+    }
+
+    // Preview avatar on file selection
+    document.getElementById('avatarFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const avatarDisplay = document.getElementById('avatarDisplay');
+                avatarDisplay.innerHTML = '<img src="' + event.target.result + '" alt="Avatar" />';
+                
+                const smallPreview = document.getElementById('smallPreview');
+                if (smallPreview) {
+                    smallPreview.src = event.target.result;
+                    smallPreview.style.display = 'block';
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Smooth scroll to sections
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            if (href.startsWith('#')) {
+                e.preventDefault();
+                const section = document.querySelector(href);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+    });
+</script>

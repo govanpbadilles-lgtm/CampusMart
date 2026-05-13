@@ -1,0 +1,111 @@
+@model CampusMart.Models.ViewModels.User.OrderSummaryViewModel
+@{
+    Layout = null;
+    string PaymentLabel(string? m) => m switch
+    {
+        "Cash" => "Cash on delivery",
+        "GCash" => "GCash",
+        "Bank Transfer" => "Bank transfer",
+        _ => string.IsNullOrEmpty(m) ? "Cash on delivery" : m
+    };
+
+    var pickupSummary = string.IsNullOrEmpty(Model.ShippingAddress)
+        ? "Campus stall pickup"
+        : Model.ShippingAddress;
+}
+
+<div class="receipt-modal-loaded p-3">
+    <p class="small text-white mb-3 text-center no-print-receipt-ui">
+        <span class="text-white-50">Purchased</span>
+        <span class="text-white fw-600">@Model.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy • hh:mm tt")</span>
+    </p>
+
+    <div class="receipt-paper mx-auto" id="receiptPrintRoot">
+        <div class="receipt-paper-header text-center pb-3 mb-3 border-bottom border-dark border-opacity-10">
+            <div class="receipt-brand-mark mx-auto mb-2"><i class="bi bi-shop-window"></i></div>
+            <div class="text-uppercase x-small fw-800 text-muted letter-spacing-2">CampusMart</div>
+            <div class="fs-4 fw-900 text-dark mt-1">Official receipt</div>
+            <div class="font-monospace small text-muted">#@Model.OrderId.ToString("D5")</div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <div class="text-muted x-small fw-800 text-uppercase mb-1">Status</div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="fw-800 text-dark">@Model.Status</span>
+                    <span class="badge rounded-pill bg-success small fw-800 px-2 text-dark">Secure</span>
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="text-muted x-small fw-800 text-uppercase mb-1">Total</div>
+                <div class="fs-2 fw-900" style="color: #b8860b !important;">₱@Model.TotalAmount.ToString("N2")</div>
+            </div>
+        </div>
+
+        <div class="receipt-section-title mb-2">Items</div>
+        <ul class="list-unstyled mb-4 receipt-line-items">
+            @foreach (var item in Model.Items)
+            {
+                <li class="d-flex gap-3 py-2 border-bottom border-dark border-opacity-10">
+                    <div class="receipt-thumb flex-shrink-0">
+                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                        {
+                            <img src="@item.ImageUrl" alt="" />
+                        }
+                        else
+                        {
+                            <i class="bi bi-box-seam text-muted"></i>
+                        }
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-800 text-dark text-truncate">@item.ProductName</div>
+                        <div class="small text-muted">@item.Quantity × ₱@item.Price.ToString("N2")</div>
+                    </div>
+                    <div class="fw-800 text-dark text-nowrap">₱@((item.Price * item.Quantity).ToString("N2"))</div>
+                </li>
+            }
+        </ul>
+
+        <div class="receipt-section-title mb-2">Amounts</div>
+        <div class="d-flex justify-content-between small mb-1">
+            <span class="text-muted">Subtotal</span>
+            <span class="text-dark fw-700">₱@Model.TotalAmount.ToString("N2")</span>
+        </div>
+        <div class="d-flex justify-content-between small mb-3">
+            <span class="text-muted">Platform fee</span>
+            <span class="text-success fw-800">₱0.00 (FREE)</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center pt-3 border-top border-dark border-opacity-15 border-2">
+            <span class="fw-900 text-dark">Total</span>
+            <span class="fs-4 fw-900" style="color: #b8860b !important;">₱@Model.TotalAmount.ToString("N2")</span>
+        </div>
+
+        <div class="receipt-section-title mt-4 mb-2">Details</div>
+        <div class="row g-3 small">
+            <div class="col-12">
+                <span class="text-muted text-uppercase x-small fw-800 d-block mb-1">Pickup &amp; notes</span>
+                <span class="text-dark fw-600 receipt-meta-text">@pickupSummary</span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <span class="text-muted text-uppercase x-small fw-800 d-block mb-1">Payment</span>
+                <span class="text-dark fw-600">@PaymentLabel(Model.PaymentMethod)</span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <span class="text-muted text-uppercase x-small fw-800 d-block mb-1">Record</span>
+                <span class="text-success fw-700"><i class="bi bi-shield-fill-check me-1"></i>Verified</span>
+            </div>
+        </div>
+
+        <p class="x-small text-muted text-center mt-4 mb-0">Show this receipt at the stall when you collect your order.</p>
+    </div>
+
+    <div class="d-flex flex-column flex-sm-row gap-2 mt-4 no-print-receipt-ui">
+        <button type="button" class="receipt-print-btn flex-grow-1 py-3" id="receiptModalPrintBtn">
+            <span class="d-flex align-items-center justify-content-center gap-2">
+                <i class="bi bi-printer-fill fs-5"></i>
+                <span class="fw-900">Print receipt</span>
+            </span>
+        </button>
+        <button type="button" class="cm-btn-outline py-3 px-4 flex-shrink-0" data-bs-dismiss="modal">Close</button>
+    </div>
+</div>

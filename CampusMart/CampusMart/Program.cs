@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +10,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 10 * 1024 * 1024;
+});
+
+builder.Services.AddRazorPages();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
@@ -22,6 +29,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 6;
+    options.SignIn.RequireConfirmedEmail = false;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
@@ -30,67 +40,29 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.LogoutPath = "/Account/Logout";
-    options.AccessDeniedPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.SlidingExpiration = true;
+    options.ExpireTimeSpan = TimeSpan.FromHours(24);
 });
 
 var app = builder.Build();
 
 // Seed a static admin user (DEV-only).
-// The admin credentials you provided are stored here for convenience.
-// Identity hashes the password; we still recommend replacing this with a safer approach for production.
 if (app.Environment.IsDevelopment())
 {
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
         var db = services.GetRequiredService<AppDbContext>();
-        await db.Database.MigrateAsync();
-
-        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-
-        const string adminRole = "Admin";
-        if (!await roleManager.RoleExistsAsync(adminRole))
+        try
         {
-            await roleManager.CreateAsync(new IdentityRole(adminRole));
+            await db.Database.MigrateAsync();
+            await DbSeeder.SeedAdminAsync(services);
         }
-
-        // You requested:
-        // admin id: 23769862
-        // admin pass: Marecigan@0912
-        var adminCredentials = new[] 
+        catch (Exception ex)
         {
-            new { Id = "23769862", Pass = "Marecigan@0912", Name = "Admin" }
-        };
-
-        foreach (var admin in adminCredentials)
-        {
-            var adminUser = await userManager.FindByNameAsync(admin.Id);
-            if (adminUser == null)
-            {
-                adminUser = new ApplicationUser
-                {
-                    UserName = admin.Id, // your app stores StudentId as UserName
-                    Email = $"{admin.Id}@campusmart.local",
-                    FullName = admin.Name,
-                    StudentId = admin.Id,
-                    DateTime = DateTime.UtcNow,
-                };
-
-                var createResult = await userManager.CreateAsync(adminUser, admin.Pass);
-                if (!createResult.Succeeded)
-                {
-                    // Fail loudly during dev so you notice misconfiguration.
-                    throw new InvalidOperationException(
-                        $"Failed to create admin user {admin.Id}: {string.Join(", ", createResult.Errors.Select(e => e.Description))}"
-                    );
-                }
-            }
-
-            if (!await userManager.IsInRoleAsync(adminUser, adminRole))
-            {
-                await userManager.AddToRoleAsync(adminUser, adminRole);
-            }
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "An error occurred while seeding the database.");
         }
     }
 }
@@ -99,27 +71,26 @@ if (app.Environment.IsDevelopment())
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseStaticFiles();
-app.MapStaticAssets();
-
+// Route configuration
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=HomeIndex}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=HomeIndex}/{id?}");
 
+app.MapRazorPages();
 
 app.Run();

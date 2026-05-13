@@ -1,88 +1,112 @@
-// === USER DASHBOARD JS ===
+// === ELITE USER SUITE JS ===
 document.addEventListener('DOMContentLoaded', function () {
-    // Mobile Sidebar & Cart Toggle
-    const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+    // 1. Core Element Selectors
     const mainSidebar = document.getElementById('mainSidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
-    
-    const cartToggleBtn = document.getElementById('cartToggleBtn');
+    const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+
     const cartSidebar = document.getElementById('cartSidebar');
+    const cartToggleBtn = document.getElementById('cartToggleBtn');
     const closeCartBtn = document.getElementById('closeCartBtn');
 
-    const notificationToggleBtn = document.getElementById('notificationToggleBtn');
     const notificationSidebar = document.getElementById('notificationSidebar');
+    const notificationToggleBtn = document.getElementById('notificationToggleBtn');
     const closeNotificationBtn = document.getElementById('closeNotificationBtn');
 
-    if (sidebarToggleBtn && mainSidebar && sidebarOverlay) {
+    const profileModal = document.getElementById('profileModal');
+    const closeProfileModal = document.getElementById('closeProfileModal');
+    const quickEditForm = document.getElementById('quickEditForm');
+
+    // ── Helper: Close All Sidebars ──
+    function closeAllPanels() {
+        if (mainSidebar) mainSidebar.classList.remove('open');
+        if (cartSidebar) cartSidebar.classList.remove('open');
+        if (notificationSidebar) notificationSidebar.classList.remove('open');
+        if (profileModal) profileModal.classList.remove('active');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        // Reset sidebar toggle icon to list
+        if (sidebarToggleBtn) {
+            const icon = sidebarToggleBtn.querySelector('i');
+            if (icon) icon.className = 'bi bi-list';
+        }
+    }
+
+    // 2. Mobile Sidebar Logic (Toggle)
+    if (sidebarToggleBtn) {
         sidebarToggleBtn.addEventListener('click', () => {
-            mainSidebar.classList.add('open');
-            sidebarOverlay.classList.add('active');
+            const isOpen = mainSidebar.classList.contains('open');
+            if (isOpen) {
+                closeAllPanels();
+            } else {
+                mainSidebar.classList.add('open');
+                sidebarOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                // Change icon to X
+                const icon = sidebarToggleBtn.querySelector('i');
+                if (icon) icon.className = 'bi bi-x-lg';
+            }
         });
     }
 
-    if (cartToggleBtn && cartSidebar && sidebarOverlay) {
+    // 2b. Close sidebar button (mobile)
+    const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+    if (closeSidebarBtn) {
+        closeSidebarBtn.addEventListener('click', closeAllPanels);
+    }
+
+    // 3. Cart Sidebar Logic
+    if (cartToggleBtn && cartSidebar) {
         cartToggleBtn.addEventListener('click', (e) => {
             e.preventDefault();
             cartSidebar.classList.add('open');
-            if (notificationSidebar) notificationSidebar.classList.remove('open');
             sidebarOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
         });
-        
-        if (closeCartBtn) {
-            closeCartBtn.addEventListener('click', () => {
-                cartSidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('active');
-            });
-        }
     }
 
-    if (notificationToggleBtn && notificationSidebar && sidebarOverlay) {
+    if (closeCartBtn) {
+        closeCartBtn.addEventListener('click', closeAllPanels);
+    }
+
+    // 4. Notification Sidebar Logic
+    if (notificationToggleBtn && notificationSidebar) {
         notificationToggleBtn.addEventListener('click', (e) => {
             e.preventDefault();
             notificationSidebar.classList.add('open');
-            if (cartSidebar) cartSidebar.classList.remove('open');
             sidebarOverlay.classList.add('active');
-        });
-        
-        if (closeNotificationBtn) {
-            closeNotificationBtn.addEventListener('click', () => {
-                notificationSidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('active');
-            });
-        }
-    }
-        
-    if (sidebarOverlay) {
-        sidebarOverlay.addEventListener('click', () => {
-            if (mainSidebar) mainSidebar.classList.remove('open');
-            if (cartSidebar) cartSidebar.classList.remove('open');
-            if (notificationSidebar) notificationSidebar.classList.remove('open');
-            sidebarOverlay.classList.remove('active');
+            document.body.style.overflow = 'hidden';
         });
     }
 
-    // Profile Modal
-    const profileModal = document.getElementById('profileModal');
-    const userProfileBtn = document.getElementById('userProfileBtn');
-    const closeProfileModal = document.getElementById('closeProfileModal');
-    const saveProfileBtn = document.getElementById('saveProfileBtn');
+    if (closeNotificationBtn) {
+        closeNotificationBtn.addEventListener('click', closeAllPanels);
+    }
+
+    // 5. Global Overlay Close
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeAllPanels);
+    }
+
+    // 6. Profile Management Logic
+    // Allow triggering profile modal from anywhere with .profile-trigger class
+    document.querySelectorAll('.profile-trigger').forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (profileModal) {
+                profileModal.classList.add('active');
+                sidebarOverlay.classList.add('active');
+            }
+        });
+    });
+
+    if (closeProfileModal) {
+        closeProfileModal.addEventListener('click', closeAllPanels);
+    }
+
+    // Image Preview
     const profilePicInput = document.getElementById('profilePicInput');
     const modalPicPreview = document.getElementById('modalPicPreview');
-    const sidebarAvatar = document.getElementById('sidebarAvatar');
-    const sidebarName = document.getElementById('sidebarName');
-    const profileNameInput = document.getElementById('profileNameInput');
-
-    if (userProfileBtn && profileModal) {
-        userProfileBtn.addEventListener('click', () => profileModal.classList.add('active'));
-    }
-    if (closeProfileModal && profileModal) {
-        closeProfileModal.addEventListener('click', () => profileModal.classList.remove('active'));
-    }
-    if (profileModal) {
-        profileModal.addEventListener('click', (e) => {
-            if (e.target === profileModal) profileModal.classList.remove('active');
-        });
-    }
     if (profilePicInput && modalPicPreview) {
         profilePicInput.addEventListener('change', function () {
             if (this.files && this.files[0]) {
@@ -92,125 +116,50 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-    // Quick Edit Form Submit
-    const quickEditForm = document.getElementById('quickEditForm');
+
+    // Quick Edit Form Handling
     if (quickEditForm) {
         quickEditForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (saveProfileBtn) {
-                saveProfileBtn.disabled = true;
-                saveProfileBtn.textContent = 'Saving...';
+            const saveBtn = document.getElementById('saveProfileBtn');
+            const nameInput = document.getElementById('profileNameInput');
+            
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
             }
 
-            const fd = new FormData();
-            fd.append('fullName', profileNameInput.value);
-            if (profilePicInput.files.length > 0) {
-                fd.append('avatarFile', profilePicInput.files[0]);
-            }
-
+            const fd = new FormData(quickEditForm);
             try {
                 const res = await fetch('/Profile/QuickUpdate', { method: 'POST', body: fd });
                 if (res.ok) {
                     const data = await res.json();
+                    const sidebarName = document.getElementById('sidebarName');
+                    const sidebarAvatar = document.getElementById('sidebarAvatar');
+                    
                     if (sidebarName) sidebarName.textContent = data.fullName;
                     if (sidebarAvatar && data.avatarUrl) sidebarAvatar.src = data.avatarUrl;
                     
-                    showToast('Profile updated successfully!');
-                    if (profileModal) profileModal.classList.remove('active');
+                    showToast('Elite profile updated successfully!');
+                    closeAllPanels();
                 } else {
-                    showToast('Failed to update profile.', true);
+                    showToast('Failed to sync profile updates.', true);
                 }
             } catch (err) {
-                console.error(err);
-                showToast('Network error.', true);
+                showToast('Network error during synchronization.', true);
             } finally {
-                if (saveProfileBtn) {
-                    saveProfileBtn.disabled = false;
-                    saveProfileBtn.textContent = 'Save Changes';
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save Changes';
                 }
             }
         });
     }
 
-    // Floor tabs
-    document.querySelectorAll('.floor-tab').forEach(tab => {
-        tab.addEventListener('click', function () {
-            document.querySelectorAll('.floor-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            const floor = this.querySelector('.floor-num')?.textContent;
-            const mapTitle = document.querySelector('.map-title');
-            const stallsTitle = document.querySelector('.stalls-title');
-            if (mapTitle) mapTitle.textContent = floor + 'th Floor Map';
-            if (stallsTitle) stallsTitle.textContent = 'Active Stalls - Floor ' + floor;
-        });
+    // Escape Key Handler
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeAllPanels();
     });
-
-    // View toggles
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-
-    // Profile page: avatar upload
-    const avatarInput = document.getElementById('avatarInput');
-    const avatarPreview = document.getElementById('avatarPreview');
-    const removeAvatarBtn = document.getElementById('removeAvatarBtn');
-    const displayName = document.getElementById('displayName');
-    const defaultAvatar = sidebarAvatar ? sidebarAvatar.src : '';
-
-    if (avatarInput && avatarPreview) {
-        avatarInput.addEventListener('change', function () {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    avatarPreview.src = e.target.result;
-                    if (sidebarAvatar) sidebarAvatar.src = e.target.result;
-                };
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-    }
-    if (removeAvatarBtn && avatarPreview) {
-        removeAvatarBtn.addEventListener('click', () => {
-            avatarPreview.src = defaultAvatar;
-            if (sidebarAvatar) sidebarAvatar.src = defaultAvatar;
-            if (avatarInput) avatarInput.value = '';
-        });
-    }
-
-    // Bio char count
-    const bioInput = document.getElementById('bioInput');
-    const charCount = document.getElementById('charCount');
-    if (bioInput && charCount) {
-        function updateCount() { charCount.textContent = bioInput.value.length; }
-        bioInput.addEventListener('input', updateCount);
-        updateCount();
-    }
-
-    // Live name sync on profile page
-    const firstName = document.getElementById('firstName');
-    const lastName = document.getElementById('lastName');
-    if (firstName && lastName) {
-        function syncName() {
-            const full = (firstName.value + ' ' + lastName.value).trim();
-            if (displayName) displayName.textContent = full || 'Your Name';
-            if (sidebarName) sidebarName.textContent = full || 'Your Name';
-        }
-        firstName.addEventListener('input', syncName);
-        lastName.addEventListener('input', syncName);
-    }
-
-    // Save profile page
-    const saveBtn = document.getElementById('saveBtn');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-            saveBtn.textContent = 'Saving...';
-            saveBtn.style.pointerEvents = 'none';
-            // Allow native form submission to proceed
-        });
-    }
 });
 
 // Toast notification
@@ -223,17 +172,10 @@ function showToast(message, isError = false) {
         document.body.appendChild(toast);
     }
     
-    if (isError) {
-        toast.classList.add('toast-error');
-        toast.textContent = '✖  ' + message;
-    } else {
-        toast.classList.remove('toast-error');
-        toast.textContent = '✓  ' + message;
-    }
+    toast.innerHTML = isError ? `<i class="bi bi-x-circle-fill me-2"></i> ${message}` : `<i class="bi bi-check-circle-fill me-2"></i> ${message}`;
+    toast.classList.toggle('toast-error', isError);
     
-    // Trigger reflow
-    void toast.offsetWidth;
-    
+    void toast.offsetWidth; // Trigger reflow
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 3500);
 }

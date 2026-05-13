@@ -1,141 +1,161 @@
 @model CampusMart.Models.ViewModels.User.CheckoutViewModel
 @{
-    ViewData["Title"] = "Checkout";
+    ViewData["Title"] = "Secure Checkout";
     Layout = "~/Views/Shared/_UserLayout.cshtml";
 }
 
-<div class="cart-container">
-    <div class="page-header animate-in">
-        <a asp-controller="Cart" asp-action="Index" class="back-btn">←</a>
-        <div><h1 class="page-title">Checkout</h1><p class="page-subtitle">Review your order and confirm purchase</p></div>
+<div class="container-xl py-5">
+    <div class="mb-5 animate-fade-in">
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-3">
+            <div>
+                <span class="cm-pill mb-3">Final Steps</span>
+                <h1 class="hero-title mb-1">Confirm Purchase</h1>
+                <p class="text-muted mb-0">Secure your campus essentials through our verified marketplace system. All exchanges happen on campus at the official stall.</p>
+            </div>
+            <a asp-controller="Cart" asp-action="Index" class="text-warning fw-700 text-decoration-none">
+                <i class="bi bi-arrow-left"></i> Back to Cart
+            </a>
+        </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 380px;gap:28px;align-items:start;">
-        <!-- Left: Order Items + Options -->
-        <div>
-            <div class="form-section animate-in d1">
-                <div class="form-section-header">
-                    <span class="form-section-icon">📦</span>
-                    <h3 class="form-section-title">Order Summary</h3>
-                    <span class="form-section-desc">@Model.ItemCount items</span>
-                </div>
-                @foreach (var item in Model.Items)
-                {
-                    <div class="checkout-item">
-                        <img src="@(item.ImageUrl ?? "https://via.placeholder.com/60")" alt="@item.ProductName" class="checkout-item-img">
-                        <div class="checkout-item-info">
-                            <div class="checkout-item-name">@item.ProductName</div>
-                            <div class="checkout-item-meta">@item.CategoryName · Qty: @item.Quantity</div>
+    <div class="row g-5">
+        <div class="col-lg-8 animate-fade-in delay-1">
+            <form asp-controller="Order" asp-action="PlaceOrder" method="post" id="checkoutForm" novalidate>
+                <input type="hidden" name="PaymentAccountMasked" id="PaymentAccountMasked" value="" />
+
+                <div class="glass-card p-4 p-md-5 mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <i class="bi bi-credit-card-2-front-fill text-warning fs-4"></i>
+                        <h4 class="text-white fw-800 mb-0">Payment Method</h4>
+                    </div>
+                    <p class="text-muted small mb-4">Cash on delivery when you pick up at the stall. GCash and bank options open a quick simulated entry flow (demo only—no real payment is processed here).</p>
+                    <div class="row g-3" id="checkoutPaymentRow">
+                        <div class="col-md-4">
+                            <label class="payment-option-elite active">
+                                <input type="radio" name="PaymentMethod" value="Cash" checked data-payment-flow="cod">
+                                <div class="payment-card-elite">
+                                    <i class="bi bi-cash-stack fs-4 text-success mb-2"></i>
+                                    <div class="text-white fw-700 small">Cash on delivery</div>
+                                    <p class="text-muted x-small mb-0 mt-1">Pay when you collect at the stall.</p>
+                                </div>
+                            </label>
                         </div>
-                        <div class="checkout-item-price">₱@((item.Price * item.Quantity).ToString("F2"))</div>
-                    </div>
-                }
-            </div>
-
-            <form asp-controller="Order" asp-action="PlaceOrder" method="post" id="checkoutForm">
-                <div class="form-section animate-in d2">
-                    <div class="form-section-header">
-                        <span class="form-section-icon">🤝</span>
-                        <h3 class="form-section-title">Fulfillment Method</h3>
-                    </div>
-                    <div class="payment-options">
-                        <label class="payment-option active">
-                            <input type="radio" name="FulfillmentMethod" value="Meet Up" checked>
-                            <div class="payment-option-content">
-                                <span class="payment-icon">📍</span>
-                                <div>
-                                    <div class="payment-name">Meet Up on Campus</div>
-                                    <div class="payment-desc">Arrange a campus meet-up with the seller</div>
+                        <div class="col-md-4">
+                            <label class="payment-option-elite">
+                                <input type="radio" name="PaymentMethod" value="GCash" data-payment-flow="gcash">
+                                <div class="payment-card-elite">
+                                    <i class="bi bi-phone-vibrate fs-4 text-primary mb-2"></i>
+                                    <div class="text-white fw-700 small">GCash</div>
+                                    <p class="text-muted x-small mb-0 mt-1">Simulated mobile number entry.</p>
                                 </div>
-                            </div>
-                        </label>
-                        <label class="payment-option">
-                            <input type="radio" name="FulfillmentMethod" value="Seller Delivery">
-                            <div class="payment-option-content">
-                                <span class="payment-icon">🚶</span>
-                                <div>
-                                    <div class="payment-name">Seller Delivery</div>
-                                    <div class="payment-desc">Seller delivers to your location on campus</div>
+                            </label>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="payment-option-elite">
+                                <input type="radio" name="PaymentMethod" value="Bank Transfer" data-payment-flow="bank">
+                                <div class="payment-card-elite">
+                                    <i class="bi bi-bank fs-4 text-info mb-2"></i>
+                                    <div class="text-white fw-700 small">Bank transfer</div>
+                                    <p class="text-muted x-small mb-0 mt-1">Simulated account number entry.</p>
                                 </div>
-                            </div>
-                        </label>
+                            </label>
+                        </div>
                     </div>
-                    <div style="margin-top:16px;">
-                        <label class="form-label">Preferred Location <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
-                        <input type="text" class="form-input" name="ShippingAddress" value="@Model.ShippingAddress" placeholder="e.g. Library Lobby, Cafeteria, Room 301 Eng. Bldg.">
-                    </div>
+                    <div id="paymentLinkedHint" class="mt-3 small text-success fw-600 d-none"></div>
                 </div>
 
-                <div class="form-section animate-in d3">
-                    <div class="form-section-header">
-                        <span class="form-section-icon">💳</span>
-                        <h3 class="form-section-title">Payment Method</h3>
+                <div class="glass-card p-4 p-md-5">
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <i class="bi bi-chat-left-dots-fill text-warning fs-4"></i>
+                        <h4 class="text-white fw-800 mb-0">Special instructions</h4>
                     </div>
-                    <div class="payment-options">
-                        <label class="payment-option active">
-                            <input type="radio" name="PaymentMethod" value="Cash" checked>
-                            <div class="payment-option-content">
-                                <span class="payment-icon">💵</span>
-                                <div>
-                                    <div class="payment-name">Cash</div>
-                                    <div class="payment-desc">Pay with cash upon meet-up</div>
-                                </div>
-                            </div>
-                        </label>
-                        <label class="payment-option">
-                            <input type="radio" name="PaymentMethod" value="GCash">
-                            <div class="payment-option-content">
-                                <span class="payment-icon">📱</span>
-                                <div>
-                                    <div class="payment-name">GCash</div>
-                                    <div class="payment-desc">Pay via GCash mobile wallet</div>
-                                </div>
-                            </div>
-                        </label>
-                        <label class="payment-option">
-                            <input type="radio" name="PaymentMethod" value="Bank Transfer">
-                            <div class="payment-option-content">
-                                <span class="payment-icon">🏦</span>
-                                <div>
-                                    <div class="payment-name">Bank Transfer</div>
-                                    <div class="payment-desc">Direct transfer from your bank account</div>
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="form-section animate-in d4">
-                    <div class="form-section-header">
-                        <span class="form-section-icon">📝</span>
-                        <h3 class="form-section-title">Notes to Seller</h3>
-                    </div>
-                    <textarea class="form-textarea" name="Notes" placeholder="Any message or special request for the seller..." style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:13px 16px;border-radius:10px;color:#fff;font-family:inherit;width:100%;min-height:80px;resize:vertical;box-sizing:border-box;"></textarea>
+                    <textarea class="modal-input" name="Notes" rows="3" placeholder="Optional message to stall staff (pickup time window, denomination for change, etc.)"></textarea>
                 </div>
             </form>
         </div>
 
-        <!-- Right: Price Summary -->
-        <div class="checkout-sidebar animate-in d2">
-            <div class="form-section" style="position:sticky;top:100px;">
-                <div class="form-section-header">
-                    <span class="form-section-icon">🧾</span>
-                    <h3 class="form-section-title">Price Details</h3>
-                </div>
-                <div class="cart-summary-row"><span>Subtotal (@Model.ItemCount items)</span><span>₱@Model.Subtotal.ToString("F2")</span></div>
-                <div class="cart-summary-row"><span>Platform Fee</span><span style="color:#4ade80;">Free</span></div>
-                <div class="cart-summary-row total"><span>Total</span><span>₱@Model.Subtotal.ToString("F2")</span></div>
+        <div class="col-lg-4 animate-fade-in delay-2">
+            <div class="glass-card p-4 p-md-5 sticky-top checkout-summary-card">
+                <h4 class="text-white fw-800 mb-4">Order summary</h4>
 
-                <button type="submit" form="checkoutForm" class="btn-checkout" style="margin-top:20px;">
-                    Confirm Purchase — ₱@Model.Subtotal.ToString("F2")
+                <div class="summary-details mb-4">
+                    @foreach (var item in Model.Items)
+                    {
+                        <div class="d-flex justify-content-between mb-2 x-small">
+                            <span class="text-muted">@item.ProductName (×@item.Quantity)</span>
+                            <span class="text-white fw-600">₱@((item.Price * item.Quantity).ToString("N2"))</span>
+                        </div>
+                    }
+                    <hr class="opacity-10 my-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted fw-600">Subtotal</span>
+                        <span class="text-white fw-700">₱@Model.Total.ToString("N2")</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted fw-600">Platform fee</span>
+                        <span class="text-success fw-800">FREE</span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-end mb-4 pt-3 border-top border-subtle">
+                    <span class="text-white fw-800 fs-5">Total</span>
+                    <div class="text-warning fw-900 fs-2">₱@Model.Total.ToString("N2")</div>
+                </div>
+
+                <button type="submit" form="checkoutForm" class="cm-btn-primary w-100 py-3 justify-content-center fs-5 mb-3 shadow-lg">
+                    Confirm &amp; place order <i class="bi bi-shield-check ms-2"></i>
                 </button>
+                <p class="x-small text-center text-muted mb-2"><i class="bi bi-receipt me-1"></i> You will get a digital receipt—also available anytime under <span class="text-white fw-700">Purchase history</span>.</p>
+                <a asp-controller="Order" asp-action="History" class="x-small text-warning text-decoration-none d-block text-center fw-700">View past receipts</a>
+            </div>
+        </div>
+    </div>
+</div>
 
-                <div style="text-align:center;margin-top:16px;">
-                    <p style="font-size:11px;color:var(--text-muted);line-height:1.5;">
-                        🎓 Campus Marketplace Transaction<br>
-                        A receipt will be generated after confirmation.
-                    </p>
+<!-- Simulated GCash entry -->
+<div class="modal fade" id="gcashPaymentModal" tabindex="-1" aria-labelledby="gcashPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content checkout-pay-modal border border-secondary border-opacity-25 shadow-lg">
+            <div class="modal-header border-secondary border-opacity-25">
+                <div>
+                    <h5 class="modal-title text-white fw-800" id="gcashPaymentModalLabel"><i class="bi bi-phone-vibrate text-primary me-2"></i> GCash number</h5>
+                    <p class="x-small text-muted mb-0">Simulated entry—type as you would in the real app.</p>
                 </div>
+                <button type="button" class="btn-close btn-close-white opacity-50" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label class="modal-label">Mobile number</label>
+                <input type="tel" class="modal-input font-monospace fs-5 letter-spacing-2" id="gcashNumberInput" maxlength="11" placeholder="09_________" autocomplete="off" inputmode="numeric" />
+                <div class="gcash-sim-dots mt-3 d-flex gap-2 justify-content-center" id="gcashSimDots" aria-hidden="true"></div>
+                <p class="x-small text-muted mt-3 mb-0">Only the last digits are stored on your receipt as a masked reference.</p>
+            </div>
+            <div class="modal-footer border-secondary border-opacity-25 gap-2">
+                <button type="button" class="cm-btn-outline py-2" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="cm-btn-primary py-2 justify-content-center" id="gcashConfirmBtn">Confirm number</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Simulated bank account entry -->
+<div class="modal fade" id="bankPaymentModal" tabindex="-1" aria-labelledby="bankPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content checkout-pay-modal border border-secondary border-opacity-25 shadow-lg">
+            <div class="modal-header border-secondary border-opacity-25">
+                <div>
+                    <h5 class="modal-title text-white fw-800" id="bankPaymentModalLabel"><i class="bi bi-bank text-info me-2"></i> Bank account</h5>
+                    <p class="x-small text-muted mb-0">Simulated entry for display on your receipt.</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white opacity-50" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label class="modal-label">Account number</label>
+                <input type="text" class="modal-input font-monospace fs-5 letter-spacing-1" id="bankAccountInput" maxlength="16" placeholder="Enter account number" autocomplete="off" inputmode="numeric" />
+                <p class="x-small text-muted mt-3 mb-0">Masked reference only; no banking API is called.</p>
+            </div>
+            <div class="modal-footer border-secondary border-opacity-25 gap-2">
+                <button type="button" class="cm-btn-outline py-2" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="cm-btn-primary py-2 justify-content-center" id="bankConfirmBtn">Confirm account</button>
             </div>
         </div>
     </div>
@@ -143,13 +163,146 @@
 
 @section Scripts {
 <script>
-    // Toggle active state on payment/fulfillment radio options
-    document.querySelectorAll('.payment-option input[type="radio"]').forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            var group = this.closest('.payment-options');
-            group.querySelectorAll('.payment-option').forEach(function(opt) { opt.classList.remove('active'); });
-            this.closest('.payment-option').classList.add('active');
+(function () {
+    var paymentRow = document.getElementById('checkoutPaymentRow');
+    var hiddenMasked = document.getElementById('PaymentAccountMasked');
+    var hint = document.getElementById('paymentLinkedHint');
+    var gcashModalEl = document.getElementById('gcashPaymentModal');
+    var bankModalEl = document.getElementById('bankPaymentModal');
+    var gcashInput = document.getElementById('gcashNumberInput');
+    var bankInput = document.getElementById('bankAccountInput');
+    var gcashDots = document.getElementById('gcashSimDots');
+
+    function setActivePaymentOption(radio) {
+        if (!paymentRow) return;
+        paymentRow.querySelectorAll('.payment-option-elite').forEach(function (el) { el.classList.remove('active'); });
+        var label = radio.closest('.payment-option-elite');
+        if (label) label.classList.add('active');
+    }
+
+    function clearPaymentDetail() {
+        hiddenMasked.value = '';
+        hint.classList.add('d-none');
+        hint.textContent = '';
+    }
+
+    function showHint(text) {
+        hint.textContent = text;
+        hint.classList.remove('d-none');
+    }
+
+    function maskGcash(digits) {
+        var clean = digits.replace(/\D/g, '');
+        if (clean.length < 4) return '';
+        return 'GCash ••••' + clean.slice(-4);
+    }
+
+    function maskBank(digits) {
+        var clean = digits.replace(/\D/g, '');
+        if (clean.length < 4) return '';
+        return 'Bank ••••' + clean.slice(-4);
+    }
+
+    function renderGcashDots(val) {
+        if (!gcashDots) return;
+        gcashDots.innerHTML = '';
+        var n = Math.min(11, val.replace(/\D/g, '').length);
+        for (var i = 0; i < 11; i++) {
+            var dot = document.createElement('span');
+            dot.className = 'gcash-dot' + (i < n ? ' filled' : '');
+            gcashDots.appendChild(dot);
+        }
+    }
+
+    paymentRow.querySelectorAll('input[name="PaymentMethod"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            setActivePaymentOption(this);
+            var flow = this.getAttribute('data-payment-flow');
+            if (flow === 'cod') {
+                clearPaymentDetail();
+                return;
+            }
+            if (flow === 'gcash') {
+                hiddenMasked.value = '';
+                hint.classList.add('d-none');
+                gcashInput.value = '';
+                renderGcashDots('');
+                bootstrap.Modal.getOrCreateInstance(gcashModalEl).show();
+            }
+            if (flow === 'bank') {
+                hiddenMasked.value = '';
+                hint.classList.add('d-none');
+                bankInput.value = '';
+                bootstrap.Modal.getOrCreateInstance(bankModalEl).show();
+            }
         });
     });
+
+    gcashInput.addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 11);
+        renderGcashDots(this.value);
+    });
+
+    bankInput.addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 16);
+    });
+
+    document.getElementById('gcashConfirmBtn').addEventListener('click', function () {
+        var v = gcashInput.value.replace(/\D/g, '');
+        if (v.length < 11) {
+            gcashInput.focus();
+            gcashInput.classList.add('is-invalid');
+            setTimeout(function () { gcashInput.classList.remove('is-invalid'); }, 800);
+            return;
+        }
+        hiddenMasked.value = maskGcash(v);
+        var mi = bootstrap.Modal.getInstance(gcashModalEl);
+        if (mi) mi.hide();
+        showHint('GCash reference saved: ' + hiddenMasked.value);
+    });
+
+    document.getElementById('bankConfirmBtn').addEventListener('click', function () {
+        var v = bankInput.value.replace(/\D/g, '');
+        if (v.length < 8) {
+            bankInput.focus();
+            bankInput.classList.add('is-invalid');
+            setTimeout(function () { bankInput.classList.remove('is-invalid'); }, 800);
+            return;
+        }
+        hiddenMasked.value = maskBank(v);
+        var mi = bootstrap.Modal.getInstance(bankModalEl);
+        if (mi) mi.hide();
+        showHint('Bank reference saved: ' + hiddenMasked.value);
+    });
+
+    gcashModalEl.addEventListener('hidden.bs.modal', function () {
+        var gcashRadio = paymentRow.querySelector('input[value="GCash"]');
+        if (gcashRadio.checked && !hiddenMasked.value) {
+            paymentRow.querySelector('input[value="Cash"]').checked = true;
+            setActivePaymentOption(paymentRow.querySelector('input[value="Cash"]'));
+            clearPaymentDetail();
+        }
+    });
+
+    bankModalEl.addEventListener('hidden.bs.modal', function () {
+        var bankRadio = paymentRow.querySelector('input[value="Bank Transfer"]');
+        if (bankRadio.checked && !hiddenMasked.value) {
+            paymentRow.querySelector('input[value="Cash"]').checked = true;
+            setActivePaymentOption(paymentRow.querySelector('input[value="Cash"]'));
+            clearPaymentDetail();
+        }
+    });
+
+    document.getElementById('checkoutForm').addEventListener('submit', function (e) {
+        var selected = paymentRow.querySelector('input[name="PaymentMethod"]:checked');
+        if (!selected) return;
+        var val = selected.value;
+        if ((val === 'GCash' || val === 'Bank Transfer') && !hiddenMasked.value.trim()) {
+            e.preventDefault();
+            if (val === 'GCash') bootstrap.Modal.getOrCreateInstance(gcashModalEl).show();
+            else bootstrap.Modal.getOrCreateInstance(bankModalEl).show();
+        }
+    });
+})();
 </script>
 }

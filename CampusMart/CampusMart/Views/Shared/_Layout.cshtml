@@ -106,45 +106,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <script>
-        function showToast(message, isError = false) {
-            let toast = document.getElementById('globalToast');
-            if (!toast) {
-                toast = document.createElement('div');
-                toast.id = 'globalToast';
-                toast.className = 'toast-notify';
-                document.body.appendChild(toast);
-            }
-            if (isError) {
-                toast.classList.add('toast-error');
-                toast.textContent = '✖  ' + message;
-            } else {
-                toast.classList.remove('toast-error');
-                toast.textContent = '✓  ' + message;
-            }
-            // Trigger reflow
-            void toast.offsetWidth;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3500);
-        }
-
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <text>
-            document.addEventListener("DOMContentLoaded", function() {
-                showToast('@Html.Raw(TempData["SuccessMessage"])', false);
-            });
-            </text>
-        }
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <text>
-            document.addEventListener("DOMContentLoaded", function() {
-                showToast('@Html.Raw(TempData["ErrorMessage"])', true);
-            });
-            </text>
-        }
-    </script>
+    @await Html.PartialAsync("_ToastNotifications")
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

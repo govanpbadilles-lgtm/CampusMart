@@ -1,47 +1,65 @@
 using CampusMart.Models;
+using CampusMart.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-
 using CampusMart.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CampusMart.Controllers
 {
     public class HomeController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<HomeController> _logger;
 
-        public HomeController(AppDbContext context)
+        public HomeController(AppDbContext context, ILogger<HomeController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-        // Mao ni imong HOME
         public async Task<IActionResult> HomeIndex()
         {
-            var categories = await _context.Categories
-                .Include(c => c.Products)
-                .ToListAsync();
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                if (User.IsInRole("Admin"))
+                {
+                    return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                }
+                return RedirectToAction("Index", "UserDashboard");
+            }
 
-            ViewBag.StallCount = await _context.StallItems.CountAsync();
-            ViewBag.RentalCount = await _context.RentalItems.CountAsync();
+            try
+            {
+                var categories = await _context.Categories
+                    .Include(c => c.Products)
+                    .OrderBy(c => c.Name)
+                    .AsNoTracking()
+                    .ToListAsync();
 
-            return View(categories);
+                ViewBag.StallCount = await _context.Stalls.Where(s => s.IsActive).CountAsync();
+                ViewBag.ProductCount = await _context.Products.CountAsync();
+
+                return View(categories);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading home page");
+                return View(new List<Category>());
+            }
         }
 
-        // Mao ni imong ABOUT
         public IActionResult About()
         {
             return View();
         }
 
-        // Pwede pud ka magpuno og CONTACT
         public IActionResult Contact()
         {
             return View();
         }
 
-        // I-pabilin lang ni para sa safety sa imong app
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

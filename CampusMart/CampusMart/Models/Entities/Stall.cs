@@ -40,7 +40,10 @@ namespace CampusMart.Models.Entities
         public int FloorId { get; set; }
         public Floor Floor { get; set; } = null!;
 
-        // Navigation: items sold at this stall
-        public ICollection<StallItem> StallItems { get; set; } = new List<StallItem>();
+        // Navigation: products sold at this stall (replaces StallItems)
+        public ICollection<Product> Products { get; set; } = new List<Product>();
+
+        // Navigation: categories defined for this stall
+        public ICollection<Category> Categories { get; set; } = new List<Category>();
     }
 }

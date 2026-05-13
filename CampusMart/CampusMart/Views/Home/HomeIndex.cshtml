@@ -26,7 +26,7 @@
 
                 <p class="cm-hero-sub animate-fade-in delay-3">
                     Shop uniforms, meals, snacks, school supplies, and more — all from
-                    verified campus sellers. Order ahead, skip the line, pick up in minutes.
+                    official campus stalls. Order ahead, skip the line, pick up in minutes.
                 </p>
 
                 <!-- CTA — Tag Helper -->
@@ -40,18 +40,18 @@
                 <!-- Stats -->
                 <div class="cm-stats-row animate-fade-in delay-3">
                     <div class="cm-stat">
-                        <div class="cm-stat-num">500+</div>
-                        <div class="cm-stat-label">Products Listed</div>
+                        <div class="cm-stat-num">@ViewBag.ProductCount+</div>
+                        <div class="cm-stat-label text-white">Products Listed</div>
                     </div>
                     <div class="cm-stat-divider"></div>
                     <div class="cm-stat">
-                        <div class="cm-stat-num">80+</div>
-                        <div class="cm-stat-label">Verified Sellers</div>
+                        <div class="cm-stat-num">@ViewBag.StallCount</div>
+                        <div class="cm-stat-label text-white">Active Stalls</div>
                     </div>
                     <div class="cm-stat-divider"></div>
                     <div class="cm-stat">
-                        <div class="cm-stat-num">3.2k+</div>
-                        <div class="cm-stat-label">Orders Placed</div>
+                        <div class="cm-stat-num">3k+</div>
+                        <div class="cm-stat-label text-white">Orders Placed</div>
                     </div>
                 </div>
             </div>
@@ -95,7 +95,7 @@
             <div class="col-auto">
                 <div class="cm-chip">
                     <span class="cm-chip-icon">🏪</span>
-                    <span><strong>Multi-Seller</strong> — One checkout</span>
+                    <span><strong>Multi-Stall</strong> — One checkout</span>
                 </div>
             </div>
         </div>
@@ -119,7 +119,7 @@
             {
                 <div class="col-6 col-sm-4 col-lg-2">
                     <a asp-area=""
-                       asp-controller="Store"
+                       asp-controller="UserDashboard"
                        asp-action="Index"
                        asp-route-category="@cat.Name"
                        class="cm-cat-card glass-card h-100">
@@ -128,8 +128,6 @@
                         <div class="cm-cat-count">
                             @{
                                 int count = cat.Products?.Count() ?? 0;
-                                if (cat.Name == "Food & Beverages") count += ViewBag.StallCount ?? 0;
-                                if (cat.Name == "Other") count += ViewBag.RentalCount ?? 0;
                             }
                             @count items
                         </div>
@@ -156,7 +154,7 @@
                     <h5>Browse &amp; Add to Cart</h5>
                     <p class="cm-text-muted mb-0">
                         Search or filter by category. Add items from multiple campus
-                        sellers in one session effortlessly.
+                        stalls in one session effortlessly.
                     </p>
                 </div>
             </div>
@@ -165,8 +163,8 @@
                     <div class="cm-how-num">2</div>
                     <h5>Choose Payment</h5>
                     <p class="cm-text-muted mb-0">
-                        Pay via GCash, bank transfer, or cash on pickup. Upload proof
-                        for digital payments instantly.
+                        Pay via GCash, bank transfer, or cash on pickup. Complete
+                        your transaction securely in the portal.
                     </p>
                 </div>
             </div>
@@ -176,7 +174,7 @@
                     <h5>Pick Up On Campus</h5>
                     <p class="cm-text-muted mb-0">
                         Get notified when your order is ready. Collect from the
-                        seller's campus location — no waiting.
+                        stall's campus location — no waiting.
                     </p>
                 </div>
             </div>

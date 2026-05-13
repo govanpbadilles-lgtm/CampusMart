@@ -12,6 +12,12 @@ namespace CampusMart.Models.Entities
 
         public int FloorNumber { get; set; }
 
+        [StringLength(200)]
+        public string? Description { get; set; }
+
+        [StringLength(100)]
+        public string? Building { get; set; }
+
         public int Capacity { get; set; } = 8;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

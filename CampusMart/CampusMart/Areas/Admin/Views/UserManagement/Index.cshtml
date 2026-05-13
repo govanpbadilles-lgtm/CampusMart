@@ -4,24 +4,61 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+<div class="admin-header-row">
     <div>
-        <h2 class="section-title" style="margin-top:0;">Student Directory</h2>
-        <div class="section-subtitle">Manage registered student accounts.</div>
+        <h2 class="section-title">Student Directory</h2>
+        <p class="section-subtitle">Oversee student accounts, departments, and platform access.</p>
     </div>
-    <button class="btn" style="background: var(--primary); color: #111; height: fit-content;" onclick="openAddStudentModal()">+ Add Student</button>
+    <button class="cm-btn-primary" onclick="openAddStudentModal()">
+        <i class="bi bi-person-plus-fill"></i>
+        <span>Add New Student</span>
+    </button>
 </div>
 
+<!-- ADVANCED SEARCH & FILTER -->
+<div class="search-wrap-cm">
+    <form asp-action="Index" method="get" class="cm-search-form">
+        <div class="search-input-group">
+            <span class="search-icon-cm"><i class="bi bi-search"></i></span>
+            <input type="text" name="searchString" value="@ViewBag.SearchString" placeholder="Search by name, Student ID, or email..." class="form-control" />
+        </div>
+        <div class="search-filters">
+            <select name="department" class="form-select">
+                <option value="">All Departments</option>
+                @if (ViewBag.Departments != null)
+                {
+                    foreach (var dept in (List<string>)ViewBag.Departments)
+                    {
+                        <option value="@dept" selected="@(ViewBag.Department == dept ? "selected" : null)">@dept</option>
+                    }
+                }
+            </select>
+            <button type="submit" class="cm-btn-primary">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Apply Filters</span>
+            </button>
+            @if (!string.IsNullOrEmpty(ViewBag.SearchString) || !string.IsNullOrEmpty(ViewBag.Department))
+            {
+                <a asp-action="Index" class="cm-btn-outline" title="Reset Search">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+            }
+        </div>
+    </form>
+</div>
+
+<div class="mt-4 mb-2"></div>
+
 <div class="table-wrap">
-    <table>
+    <table class="cm-table">
         <thead>
             <tr>
-                <th>Avatar</th>
-                <th>Name</th>
+                <th style="width: 80px;">Identity</th>
+                <th>Student Information</th>
                 <th>Student ID</th>
-                <th>Email</th>
-                <th>Date Joined</th>
-                <th>Actions</th>
+                <th>Email Address</th>
+                <th>Registration Date</th>
+                <th class="text-end">Management</th>
             </tr>
         </thead>
         <tbody>
@@ -31,86 +68,126 @@
                     <td>
                         @if (!string.IsNullOrEmpty(user.AvatarUrl))
                         {
-                            <img src="@user.AvatarUrl" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-subtle);" />
+                            <img src="@user.AvatarUrl" alt="Avatar" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover; border: 1px solid var(--admin-border);" />
                         }
                         else
                         {
                             var initial = string.IsNullOrEmpty(user.FullName) ? "U" : user.FullName.Substring(0, 1).ToUpper();
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; font-weight: 800; border: 2px solid var(--border-subtle);">
-                                @initial
-                            </div>
+                            <div class="avatar-placeholder">@initial</div>
                         }
                     </td>
-                    <td><div style="font-weight: 700;">@user.FullName</div></td>
-                    <td>@user.StudentId</td>
-                    <td>@user.Email</td>
-                    <td>@user.DateTime.ToString("MMM dd, yyyy")</td>
                     <td>
-                        <button class="btn" style="background: rgba(255,255,255,0.1); color: #fff; padding: 6px 12px; margin-right: 8px;" onclick="viewStudentDetails('@user.Id')">View</button>
-                        <button class="btn" style="background: rgba(121,231,163,0.12); color: #79e7a3; border: 1px solid rgba(121,231,163,0.3); padding: 6px 12px; margin-right: 8px;" onclick="openEditStudentModal('@user.Id')">Edit</button>
-                        <button class="btn warn" style="padding: 6px 12px;" onclick="deleteStudent('@user.Id', '@user.FullName')">Delete</button>
+                        <div style="font-weight: 800; color: #fff; font-size: 15px;">@user.FullName</div>
+                        <div style="font-size: 12px; color: var(--admin-primary); font-weight: 700; text-transform: uppercase; margin-top: 2px;">@user.Department</div>
+                    </td>
+                    <td>
+                        <span style="font-family: 'JetBrains Mono', monospace; background: rgba(255, 215, 0, 0.08); color: var(--admin-primary); padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 13px; border: 1px solid rgba(255, 215, 0, 0.15);">@user.StudentId</span>
+                    </td>
+                    <td style="color: var(--text-muted); font-weight: 500;">@user.Email</td>
+                    <td style="color: var(--text-dim); font-size: 13px;">@user.DateTime.ToString("MMM dd, yyyy")</td>
+                    <td>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button class="tool-btn" onclick="viewStudentDetails('@user.Id')" title="Quick View">
+                                <i class="bi bi-eye-fill"></i>
+                            </button>
+                            <button class="tool-btn" style="color: var(--admin-primary);" onclick="openEditStudentModal('@user.Id')" title="Edit Profile">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                            <button class="tool-btn" style="color: #f87171;" onclick="deleteStudent('@user.Id', '@user.FullName')" title="Delete Account">
+                                <i class="bi bi-trash3-fill"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             }
             @if(!Model.Any())
             {
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 24px;">No students registered yet.</td>
+                    <td colspan="6" class="text-center py-5">
+                        <div style="opacity: 0.3; margin-bottom: 16px;">
+                            <i class="bi bi-person-x" style="font-size: 64px;"></i>
+                        </div>
+                        <h4 style="color: #fff; font-weight: 800;">No Students Found</h4>
+                        <p style="color: var(--text-muted);">Try adjusting your search filters or add a new student.</p>
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
 </div>
 
-<!-- ADD STUDENT MODAL -->
+<!-- MODALS - Refined Designs -->
+
 <div class="modal-overlay" id="addStudentModal" style="display:none;">
-    <div class="profile-modal" style="max-height: 90vh; overflow-y: auto;">
+    <div class="profile-modal" style="max-height: 95vh; overflow-y: auto;">
         <div class="modal-header">
-            <h2 class="modal-title">Create Student Account</h2>
+            <div>
+                <h2 class="modal-title">Create Account</h2>
+                <p style="color: var(--text-dim); font-size: 14px; margin-top: 4px;">Register a new student to the platform.</p>
+            </div>
             <button class="close-modal" onclick="closeModal('addStudentModal')">&times;</button>
         </div>
         <form id="addStudentForm" enctype="multipart/form-data">
-            <div class="modal-form-row">
-                <div class="modal-form-group">
-                    <label class="modal-label">First Name *</label>
-                    <input type="text" class="modal-input" id="newFirstName" required>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="modal-label">First Name</label>
+                    <input type="text" class="modal-input" id="newFirstName" placeholder="e.g. John" required>
                 </div>
-                <div class="modal-form-group">
-                    <label class="modal-label">Last Name *</label>
-                    <input type="text" class="modal-input" id="newLastName" required>
+                <div class="col-md-6">
+                    <label class="modal-label">Last Name</label>
+                    <input type="text" class="modal-input" id="newLastName" placeholder="e.g. Doe" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="modal-label">Student ID</label>
+                    <input type="text" class="modal-input" id="newStudentId" placeholder="2024-0001" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="modal-label">Email Address</label>
+                    <input type="email" class="modal-input" id="newEmail" placeholder="student@university.edu" required>
+                </div>
+                <div class="col-12">
+                    <label class="modal-label">Department</label>
+                    <select class="modal-input" id="newDepartment" required>
+                        <option value="">Select Department</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Business Administration">Business Administration</option>
+                        <option value="Education">Education</option>
+                        <option value="Arts & Sciences">Arts & Sciences</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="modal-label">Profile Image (Optional)</label>
+                    <div style="padding: 16px; background: rgba(255,255,255,0.02); border: 1px dashed var(--admin-border); border-radius: 12px; text-align: center;">
+                        <input type="file" id="newAvatar" accept="image/*" style="display: none;">
+                        <button type="button" class="cm-btn-outline" style="padding: 8px 16px; font-size: 13px;" onclick="document.getElementById('newAvatar').click()">
+                            <i class="bi bi-cloud-upload"></i> Upload an image
+                        </button>
+                        <div id="newAvatarPreview" style="margin-top:12px;"></div>
+                    </div>
                 </div>
             </div>
-            <div class="modal-form-row" style="margin-top:14px;">
-                <div class="modal-form-group">
-                    <label class="modal-label">Student ID *</label>
-                    <input type="text" class="modal-input" id="newStudentId" required>
-                </div>
-                <div class="modal-form-group">
-                    <label class="modal-label">Email Address *</label>
-                    <input type="email" class="modal-input" id="newEmail" required>
+            <div style="margin-top: 24px; padding: 16px; background: rgba(255, 215, 0, 0.05); border: 1px solid rgba(255, 215, 0, 0.1); border-radius: 12px; display: flex; gap: 12px; align-items: flex-start;">
+                <i class="bi bi-info-circle-fill" style="color: var(--admin-primary); margin-top: 2px;"></i>
+                <div style="font-size: 12px; color: var(--text-main); line-height: 1.5;">
+                    <strong style="color: var(--admin-primary);">Security Note:</strong> Default password is <code>CampusMart123!</code>. User will be prompted to change it on first login.
                 </div>
             </div>
-            <div class="modal-form-group" style="margin-top:14px;">
-                <label class="modal-label">Profile Picture (Optional)</label>
-                <input type="file" class="modal-input" id="newAvatar" accept="image/*" style="padding: 8px;">
-                <div id="newAvatarPreview" style="margin-top:8px;"></div>
-            </div>
-            <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted); line-height: 1.5;">
-                <strong>Note:</strong> The default password will be set to <code style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px;">CampusMart123!</code>. The student should log in and change it.
-            </div>
-            <button type="submit" class="btn-save" style="width:100%; margin-top: 20px;" id="saveStudentBtn">Create Account</button>
+            <button type="submit" class="cm-btn-primary" style="width:100%; margin-top: 32px;" id="saveStudentBtn">
+                <i class="bi bi-check-circle-fill"></i> Confirm & Create Account
+            </button>
         </form>
     </div>
 </div>
 
 <!-- VIEW STUDENT MODAL -->
 <div class="modal-overlay" id="viewStudentModal" style="display:none;">
-    <div class="profile-modal">
+    <div class="profile-modal" style="max-width: 500px;">
         <div class="modal-header">
             <h2 class="modal-title">Student Profile</h2>
             <button class="close-modal" onclick="closeModal('viewStudentModal')">&times;</button>
         </div>
-        <div id="studentDetailContent" style="display: flex; flex-direction: column; gap: 16px; align-items: center; text-align: center;">
+        <div id="studentDetailContent">
             <!-- Rendered via JS -->
         </div>
     </div>
@@ -118,39 +195,47 @@
 
 <!-- EDIT STUDENT MODAL -->
 <div class="modal-overlay" id="editStudentModal" style="display:none;">
-    <div class="profile-modal" style="max-height: 90vh; overflow-y: auto;">
+    <div class="profile-modal" style="max-height: 95vh; overflow-y: auto;">
         <div class="modal-header">
-            <h2 class="modal-title">Edit Student Account</h2>
+            <div>
+                <h2 class="modal-title">Edit Student</h2>
+                <p style="color: var(--text-dim); font-size: 14px; margin-top: 4px;">Update account information and permissions.</p>
+            </div>
             <button class="close-modal" onclick="closeModal('editStudentModal')">&times;</button>
         </div>
         <form id="editStudentForm" enctype="multipart/form-data">
             <input type="hidden" id="editStudentIdHidden" />
-            <div class="modal-form-row">
-                <div class="modal-form-group">
-                    <label class="modal-label">First Name *</label>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="modal-label">First Name</label>
                     <input type="text" class="modal-input" id="editFirstName" required>
                 </div>
-                <div class="modal-form-group">
-                    <label class="modal-label">Last Name *</label>
+                <div class="col-md-6">
+                    <label class="modal-label">Last Name</label>
                     <input type="text" class="modal-input" id="editLastName" required>
                 </div>
-            </div>
-            <div class="modal-form-row" style="margin-top:14px;">
-                <div class="modal-form-group">
-                    <label class="modal-label">Student ID *</label>
+                <div class="col-md-6">
+                    <label class="modal-label">Student ID</label>
                     <input type="text" class="modal-input" id="editStudentId" required>
                 </div>
-                <div class="modal-form-group">
-                    <label class="modal-label">Email Address *</label>
+                <div class="col-md-6">
+                    <label class="modal-label">Email Address</label>
                     <input type="email" class="modal-input" id="editEmail" required>
                 </div>
+                <div class="col-12">
+                    <label class="modal-label">Update Profile Picture</label>
+                    <div style="padding: 16px; background: rgba(255,255,255,0.02); border: 1px dashed var(--admin-border); border-radius: 12px; text-align: center;">
+                        <input type="file" id="editAvatar" accept="image/*" style="display: none;">
+                        <button type="button" class="cm-btn-outline" style="padding: 8px 16px; font-size: 13px;" onclick="document.getElementById('editAvatar').click()">
+                            <i class="bi bi-camera-fill"></i> Upload an image
+                        </button>
+                        <div id="editAvatarPreview" style="margin-top:12px;"></div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-form-group" style="margin-top:14px;">
-                <label class="modal-label">Update Profile Picture</label>
-                <input type="file" class="modal-input" id="editAvatar" accept="image/*" style="padding: 8px;">
-                <div id="editAvatarPreview" style="margin-top:8px;"></div>
-            </div>
-            <button type="submit" class="btn-save" style="width:100%; margin-top: 20px;" id="updateStudentBtn">Save Changes</button>
+            <button type="submit" class="cm-btn-primary" style="width:100%; margin-top: 32px;" id="updateStudentBtn">
+                <i class="bi bi-save-fill"></i> Save Updates
+            </button>
         </form>
     </div>
 </div>

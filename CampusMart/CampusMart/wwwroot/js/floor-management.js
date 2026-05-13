@@ -7,36 +7,8 @@ let floors = [];
 let currentFloorId = null;
 let stalls = [];
 
-// ── Modal Helpers ──
-
-function closeModal(id) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.style.display = 'none';
-        el.classList.remove('active');
-    }
-}
-
-function showModal(id) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.style.display = 'flex';
-        el.classList.add('active');
-        
-        // Also populate default fields for Add Floor if this is the addFloorModal
-        if (id === 'addFloorModal') {
-            const nameInput = document.getElementById('newFloorName');
-            const numInput = document.getElementById('newFloorNumber');
-            const capInput = document.getElementById('newFloorCapacity');
-            if (nameInput) nameInput.value = '';
-            if (numInput) numInput.value = floors ? floors.length + 1 : 1;
-            if (capInput) capInput.value = 8;
-        }
-    }
-}
-
 // ── Custom Alert / Confirm ──
-function showToast(message, type = 'error') {
+function showToast(message, type = 'success') {
     let container = document.getElementById('toastContainer');
     if (!container) {
         container = document.createElement('div');
@@ -45,7 +17,8 @@ function showToast(message, type = 'error') {
     }
     const toast = document.createElement('div');
     toast.className = `custom-toast ${type}`;
-    toast.innerHTML = `<div style="font-size: 20px;">${type === 'error' ? '⚠️' : '✅'}</div><div>${message}</div>`;
+    const icon = type === 'error' ? '<i class="bi bi-exclamation-triangle-fill"></i>' : '<i class="bi bi-check-circle-fill"></i>';
+    toast.innerHTML = `<div style="font-size: 20px;">${icon}</div><div>${message}</div>`;
     container.appendChild(toast);
     
     // Trigger animation
@@ -67,7 +40,7 @@ function showConfirm(message) {
             overlay.id = 'customConfirmOverlay';
             overlay.innerHTML = `
                 <div class="confirm-dialog">
-                    <div class="confirm-icon">⚠️</div>
+                    <div class="confirm-icon"><i class="bi bi-exclamation-circle" style="color: #ef4444;"></i></div>
                     <div class="confirm-title">Are you sure?</div>
                     <div class="confirm-message" id="confirmMsgText"></div>
                     <div class="confirm-actions">
@@ -95,20 +68,6 @@ function showConfirm(message) {
         btnCancel.onclick = () => { cleanup(); resolve(false); };
     });
 }
-
-// Close modal when clicking on overlay background (not the modal card itself)
-document.addEventListener('click', function (e) {
-    if (e.target.classList.contains('modal-overlay') && e.target.id !== 'profileModal') {
-        e.target.style.display = 'none';
-    }
-});
-
-// Close modals on Escape key
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        ['addFloorModal', 'stallModal', 'stallDetailModal'].forEach(id => closeModal(id));
-    }
-});
 
 // ── API Helper ──
 
@@ -197,9 +156,6 @@ function renderFloorButtons() {
             await loadStalls();
         });
     });
-
-    const totalEl = document.getElementById('totalFloors');
-    if (totalEl) totalEl.textContent = floors.length;
 }
 
 // ══════════════════════════════════════
@@ -225,42 +181,52 @@ function renderStalls() {
     if (stalls.length === 0) {
         grid.innerHTML = `
             <div style="grid-column: 1/-1; text-align:center; padding: 60px 0; color: var(--text-muted);">
-                <div style="font-size:48px; margin-bottom:12px;">🏪</div>
+                <div style="font-size:48px; margin-bottom:12px; opacity: 0.2;"><i class="bi bi-shop"></i></div>
                 <h3 style="font-weight:700; color:#fff;">No stalls yet</h3>
-                <p>Click "+ Create Stall" to add the first stall to this floor.</p>
+                <p>Click "Create Stall" to add the first stall to this floor.</p>
             </div>`;
         return;
     }
 
     grid.innerHTML = stalls.map(s => {
         const open = isStallOpen(s.openTime, s.closeTime);
-        const statusColor = s.isActive ? (open ? '#79e7a3' : '#ff8d8d') : '#666';
+        const statusClass = s.isActive ? (open ? 'status-open' : 'status-closed') : 'status-inactive';
         const statusText = s.isActive ? (open ? 'Open' : 'Closed') : 'Inactive';
         const catColor = categoryColor(s.category);
 
         return `
-        <article class="stall-card" style="position:relative; overflow:hidden;">
+        <article class="stall-card">
             ${s.imageUrl ? `
-                <div style="height:120px; overflow:hidden; border-radius:8px 8px 0 0; margin:-14px -14px 12px -14px;">
-                    <img src="${s.imageUrl}" alt="${s.name}" style="width:100%; height:100%; object-fit:cover;">
-                </div>` : ''}
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <h3 class="stall-name" style="font-size:20px;">${s.name}</h3>
-                <span style="background:${statusColor}22; color:${statusColor}; border:1px solid ${statusColor}44; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:800; text-transform:uppercase; white-space:nowrap;">
-                    ${statusText}
-                </span>
-            </div>
-            <div class="stall-id">${s.stallNumber}</div>
-            <div class="stall-meta">Owner: <strong>${s.ownerName || '—'}</strong></div>
-            <div class="stall-meta">Category <span class="pill" style="color:${catColor}; border-color:${catColor}44;">${s.category || 'N/A'}</span></div>
-            <div class="stall-meta" style="font-size:14px; color:var(--text-muted);">
-                🕐 ${formatTime(s.openTime)} — ${formatTime(s.closeTime)}
-            </div>
-            <div class="stall-actions">
-                <button class="btn" onclick="openEditStall(${s.id})">Edit</button>
-                <button class="btn" onclick="openStallDetail(${s.id})" style="background:rgba(121,231,163,0.12); color:#79e7a3; border-color:rgba(121,231,163,0.3);">Enter</button>
-                <button class="btn warn" onclick="toggleStall(${s.id})">${s.isActive ? 'Deactivate' : 'Activate'}</button>
-                <button class="btn warn" style="background:rgba(255,141,141,0.12); color:#ff8d8d; border-color:rgba(255,141,141,0.3);" onclick="deleteStall(${s.id})">Delete</button>
+                <div class="stall-card-img">
+                    <img src="${s.imageUrl}" alt="${s.name}">
+                </div>` : `
+                <div class="stall-card-img d-flex align-items-center justify-content-center" style="font-size: 40px; color: rgba(255,255,255,0.1);">
+                    <i class="bi bi-shop"></i>
+                </div>`}
+            <div class="stall-card-body">
+                <div class="stall-header">
+                    <h3 class="stall-name">${s.name}</h3>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>
+                <div class="stall-id"><i class="bi bi-hash"></i> ${s.stallNumber}</div>
+                <div class="stall-meta"><span><i class="bi bi-person"></i></span> Owner: <strong>${s.ownerName || '—'}</strong></div>
+                <div class="stall-meta"><span><i class="bi bi-tag"></i></span> Category: <span class="pill" style="color:${catColor}; border-color:${catColor}44;">${s.category || 'N/A'}</span></div>
+                <div class="stall-meta"><span><i class="bi bi-clock"></i></span> ${formatTime(s.openTime)} — ${formatTime(s.closeTime)}</div>
+                
+                <div class="stall-actions">
+                    <button class="tool-btn" onclick="openEditStall(${s.id})" title="Edit Settings">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="tool-btn" onclick="openStallDetail(${s.id})" title="Manage Items">
+                        <i class="bi bi-box-seam"></i>
+                    </button>
+                    <button class="tool-btn" onclick="toggleStall(${s.id})" title="${s.isActive ? 'Deactivate' : 'Activate'}">
+                        <i class="bi ${s.isActive ? 'bi-slash-circle' : 'bi-check-circle'}"></i>
+                    </button>
+                    <button class="tool-btn" style="color: #ef4444;" onclick="deleteStall(${s.id})" title="Delete Stall">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
             </div>
         </article>`;
     }).join('');
@@ -275,12 +241,12 @@ function updateCapacity() {
     const pct = cap > 0 ? Math.round((active / cap) * 100) : 0;
 
     const el = (id) => document.getElementById(id);
-    if (el('capacityLabel')) el('capacityLabel').textContent = `Floor ${floor.floorNumber} Capacity`;
+    if (el('capacityLabel')) el('capacityLabel').textContent = `Floor ${floor.floorNumber} Utilization`;
     if (el('capacityUsed')) el('capacityUsed').textContent = active;
-    if (el('capacityTotal')) el('capacityTotal').textContent = `/ ${cap} occupied`;
+    if (el('capacityTotal')) el('capacityTotal').textContent = `/ ${cap} stalls occupied`;
     if (el('capacityFill')) el('capacityFill').style.width = `${pct}%`;
     if (el('currentOccupancy')) el('currentOccupancy').textContent = `${pct}%`;
-    if (el('occupancySub')) el('occupancySub').textContent = `${active} of ${cap} stalls`;
+    if (el('occupancySub')) el('occupancySub').textContent = `${active} of ${cap} stalls used`;
 }
 
 function updateGlobalMetrics() {
@@ -288,7 +254,7 @@ function updateGlobalMetrics() {
     const el = document.getElementById('totalActiveStalls');
     if (el) el.textContent = total;
     const sub = document.getElementById('totalStallsSub');
-    if (sub) sub.textContent = `across ${floors.length} floor${floors.length !== 1 ? 's' : ''}`;
+    if (sub) sub.innerHTML = `<i class="bi bi-shop"></i> across ${floors.length} levels`;
 }
 
 // ══════════════════════════════════════
@@ -333,6 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
             saveFloorBtn.textContent = 'Create Floor';
 
             if (result) {
+                showToast('Floor created successfully!', 'success');
                 closeModal('addFloorModal');
                 currentFloorId = result.id;
                 await loadFloors();
@@ -347,9 +314,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!currentFloorId) { showToast('Please create a floor first.', 'error'); return; }
             document.getElementById('stallEditId').value = '';
             document.getElementById('stallModalTitle').textContent = 'Create Stall';
-            document.getElementById('saveStallBtn').textContent = 'Create Stall';
+            document.getElementById('saveStallBtn').innerHTML = '<i class="bi bi-plus-lg"></i> Create Stall';
             document.getElementById('stallForm').reset();
             document.getElementById('stallImagePreview').innerHTML = '';
+            document.getElementById('stallIsActive').value = 'true';
             showModal('stallModal');
         });
     }
@@ -370,13 +338,14 @@ document.addEventListener('DOMContentLoaded', () => {
             fd.append('Description', document.getElementById('stallDesc').value);
             fd.append('OpenTime', document.getElementById('stallOpenTime').value);
             fd.append('CloseTime', document.getElementById('stallCloseTime').value);
+            fd.append('IsActive', document.getElementById('stallIsActive').value === 'true');
             fd.append('FloorId', currentFloorId);
 
             const imgInput = document.getElementById('stallImage');
             if (imgInput.files.length > 0) fd.append('Image', imgInput.files[0]);
 
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Saving...';
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split spin"></i> Saving...';
 
             let url = `${API}/stalls`;
             let method = 'POST';
@@ -388,9 +357,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await apiFetch(url, { method, body: fd });
 
             submitBtn.disabled = false;
-            submitBtn.textContent = editId ? 'Save Changes' : 'Create Stall';
+            submitBtn.innerHTML = editId ? '<i class="bi bi-save-fill"></i> Save Changes' : '<i class="bi bi-plus-lg"></i> Create Stall';
 
             if (result) {
+                showToast(editId ? 'Stall updated!' : 'Stall created!', 'success');
                 closeModal('stallModal');
                 await loadFloors();
                 await loadStalls();
@@ -404,39 +374,85 @@ document.addEventListener('DOMContentLoaded', () => {
         addItemForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const stallId = document.getElementById('itemStallId').value;
+            const submitBtn = addItemForm.querySelector('button[type="submit"]');
 
             const fd = new FormData();
             fd.append('Name', document.getElementById('itemName').value);
-            fd.append('Price', document.getElementById('itemPrice').value);
+            fd.append('Price', document.getElementById('itemPrice').value || 0);
             fd.append('Description', document.getElementById('itemDesc').value);
-            fd.append('Stock', document.getElementById('itemStock').value);
+            fd.append('Stock', document.getElementById('itemStock').value || 0);
+            fd.append('CategoryId', document.getElementById('itemCategory').value);
             fd.append('StallId', stallId);
 
             const imgInput = document.getElementById('itemImage');
             if (imgInput.files.length > 0) fd.append('Image', imgInput.files[0]);
 
-            const result = await apiFetch(`${API}/stall-items`, { method: 'POST', body: fd });
+            submitBtn.disabled = true;
+            const originalHtml = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split spin"></i> Uploading...';
+
+            const result = await apiFetch(`${API}/products`, { method: 'POST', body: fd });
+            
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalHtml;
+
             if (result) {
+                showToast('Product added!', 'success');
                 addItemForm.reset();
                 document.getElementById('itemStallId').value = stallId;
+                document.getElementById('itemImagePreview').innerHTML = ''; // Clear preview
                 await loadStallItems(stallId);
             }
         });
     }
 
-    // ── Image Preview ──
-    const stallImage = document.getElementById('stallImage');
-    if (stallImage) {
-        stallImage.addEventListener('change', function () {
-            const preview = document.getElementById('stallImagePreview');
-            if (this.files.length > 0) {
-                const url = URL.createObjectURL(this.files[0]);
-                preview.innerHTML = `<img src="${url}" style="max-width:100%; max-height:120px; border-radius:8px; object-fit:cover;">`;
-            } else {
-                preview.innerHTML = '';
+    // ── Add Category Form ──
+    const addCategoryForm = document.getElementById('addCategoryForm');
+    if (addCategoryForm) {
+        addCategoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const stallId = document.getElementById('itemStallId').value;
+            const name = document.getElementById('newCatName').value;
+            const icon = document.getElementById('newCatIcon').value;
+            const submitBtn = addCategoryForm.querySelector('button[type="submit"]');
+
+            submitBtn.disabled = true;
+
+            const result = await apiFetch(`${API}/categories`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, icon, stallId: parseInt(stallId) })
+            });
+
+            submitBtn.disabled = false;
+
+            if (result) {
+                showToast('Category created!', 'success');
+                closeModal('addCategoryModal');
+                addCategoryForm.reset();
+                await loadCategories(stallId);
             }
         });
     }
+
+    // ── Image Preview Logic ──
+    const setupPreview = (inputSelector, previewSelector) => {
+        const input = document.getElementById(inputSelector);
+        const preview = document.getElementById(previewSelector);
+        if (input && preview) {
+            input.addEventListener('change', function () {
+                if (this.files.length > 0) {
+                    const url = URL.createObjectURL(this.files[0]);
+                    preview.innerHTML = `<img src="${url}" style="max-width:100%; max-height:120px; border-radius:12px; object-fit:cover; border: 2px solid var(--admin-primary); margin-top: 8px;">`;
+                } else {
+                    preview.innerHTML = '';
+                }
+            });
+        }
+    };
+
+    setupPreview('stallImage', 'stallImagePreview');
+    setupPreview('itemImage', 'itemImagePreview');
 });
 
 // ══════════════════════════════════════
@@ -445,6 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function toggleStall(id) {
     await apiFetch(`${API}/stalls/${id}/toggle`, { method: 'POST' });
+    showToast('Status toggled.');
     await loadFloors();
     await loadStalls();
 }
@@ -455,7 +472,7 @@ async function deleteStall(id) {
     
     const result = await apiFetch(`${API}/stalls/${id}`, { method: 'DELETE' });
     if (result) {
-        showToast('Stall deleted successfully.', 'success');
+        showToast('Stall deleted.', 'success');
         await loadFloors();
         await loadStalls();
     }
@@ -463,7 +480,7 @@ async function deleteStall(id) {
 
 async function deleteFloor() {
     if (!currentFloorId) {
-        showToast('No floor selected to delete.', 'error');
+        showToast('No floor selected.', 'error');
         return;
     }
     const confirmed = await showConfirm('Are you sure you want to delete this floor and all its stalls?');
@@ -471,7 +488,7 @@ async function deleteFloor() {
     
     const result = await apiFetch(`${API}/floors/${currentFloorId}`, { method: 'DELETE' });
     if (result) {
-        showToast('Floor deleted successfully.', 'success');
+        showToast('Floor deleted.', 'success');
         currentFloorId = null;
         await loadFloors();
     }
@@ -482,8 +499,8 @@ function openEditStall(id) {
     if (!stall) return;
 
     document.getElementById('stallEditId').value = id;
-    document.getElementById('stallModalTitle').textContent = 'Edit Stall';
-    document.getElementById('saveStallBtn').textContent = 'Save Changes';
+    document.getElementById('stallModalTitle').textContent = 'Edit Stall Settings';
+    document.getElementById('saveStallBtn').innerHTML = '<i class="bi bi-save-fill"></i> Save Changes';
     document.getElementById('stallName').value = stall.name;
     document.getElementById('stallNumber').value = stall.stallNumber;
     document.getElementById('stallOwner').value = stall.ownerName;
@@ -491,10 +508,11 @@ function openEditStall(id) {
     document.getElementById('stallDesc').value = stall.description || '';
     document.getElementById('stallOpenTime').value = stall.openTime || '08:00';
     document.getElementById('stallCloseTime').value = stall.closeTime || '20:00';
+    document.getElementById('stallIsActive').value = stall.isActive ? 'true' : 'false';
 
     const preview = document.getElementById('stallImagePreview');
     if (stall.imageUrl) {
-        preview.innerHTML = `<img src="${stall.imageUrl}" style="max-width:100%; max-height:120px; border-radius:8px; object-fit:cover;">`;
+        preview.innerHTML = `<img src="${stall.imageUrl}" style="max-width:100%; max-height:120px; border-radius:12px; object-fit:cover; border: 2px solid var(--admin-primary); margin-top: 8px;">`;
     } else {
         preview.innerHTML = '';
     }
@@ -503,6 +521,14 @@ function openEditStall(id) {
 }
 
 // ── Stall Detail & Items ──
+
+async function loadCategories(stallId) {
+    const cats = await apiFetch(`${API}/categories?stallId=${stallId}`) || [];
+    const select = document.getElementById('itemCategory');
+    if (select) {
+        select.innerHTML = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+}
 
 async function openStallDetail(id) {
     const stall = stalls.find(s => s.id === id);
@@ -516,46 +542,54 @@ async function openStallDetail(id) {
     const statusText = stall.isActive ? (open ? 'Open' : 'Closed') : 'Inactive';
 
     document.getElementById('stallDetailContent').innerHTML = `
-        ${stall.imageUrl ? `<img src="${stall.imageUrl}" style="width:100%; max-height:220px; object-fit:cover; border-radius:12px; margin-bottom:16px;">` : ''}
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:16px; background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:12px; padding:20px;">
-            <div><span style="color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">STALL NUMBER</span><br><strong style="font-size:15px;">${stall.stallNumber}</strong></div>
-            <div><span style="color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">OWNER</span><br><strong style="font-size:15px;">${stall.ownerName || '—'}</strong></div>
-            <div><span style="color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">CATEGORY</span><br><span class="pill" style="color:${categoryColor(stall.category)}; border-color:${categoryColor(stall.category)}44; margin-left:0;">${stall.category || 'N/A'}</span></div>
-            <div><span style="color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">STATUS</span><br><span style="color:${statusColor}; font-weight:700; font-size:15px;">${statusText}</span></div>
+        ${stall.imageUrl ? `<img src="${stall.imageUrl}" style="width:100%; max-height:220px; object-fit:cover; border-radius:16px; margin-bottom:20px; border: 1px solid var(--admin-border);">` : ''}
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:16px; background:rgba(255,255,255,0.02); border:1px solid var(--admin-border); border-radius:16px; padding:24px;">
+            <div><span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:800; letter-spacing:1px;">STALL ID</span><br><strong style="font-size:16px;">${stall.stallNumber}</strong></div>
+            <div><span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:800; letter-spacing:1px;">OWNER</span><br><strong style="font-size:16px;">${stall.ownerName || '—'}</strong></div>
+            <div><span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:800; letter-spacing:1px;">CATEGORY</span><br><span class="pill" style="color:${categoryColor(stall.category)}; border-color:${categoryColor(stall.category)}44; margin-left:0; font-size:10px;">${stall.category || 'N/A'}</span></div>
+            <div><span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:800; letter-spacing:1px;">STATUS</span><br><span style="color:${statusColor}; font-weight:800; font-size:16px;">${statusText}</span></div>
         </div>
-        <div style="margin-top:12px; font-size:14px; color:var(--text-muted);">
-            🕐 <strong style="color:#fff;">${formatTime(stall.openTime)} — ${formatTime(stall.closeTime)}</strong>
+        <div style="margin-top:16px; font-size:14px; color:var(--text-muted); padding: 0 10px;">
+            <i class="bi bi-clock-history"></i> Operating Hours: <strong style="color:#fff;">${formatTime(stall.openTime)} — ${formatTime(stall.closeTime)}</strong>
         </div>`;
 
 
     showModal('stallDetailModal');
+    await loadCategories(id);
     await loadStallItems(id);
 }
 
 async function loadStallItems(stallId) {
-    const items = await apiFetch(`${API}/stalls/${stallId}/items`) || [];
+    const items = await apiFetch(`${API}/stalls/${stallId}/products`) || [];
     const container = document.getElementById('stallItemsList');
 
     if (items.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">No items added yet. Use the form below to add items.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted); background: rgba(0,0,0,0.1); border-radius: 12px; border: 1px dashed var(--admin-border);">
+            <i class="bi bi-box-seam fs-2 d-block mb-2"></i> No items added yet.
+        </div>`;
         return;
     }
 
     container.innerHTML = items.map(item => `
-        <div style="display:flex; align-items:center; gap:12px; padding:10px; border:1px solid var(--border-subtle); border-radius:10px; margin-bottom:8px; background:rgba(255,255,255,0.02);">
+        <div style="display:flex; align-items:center; gap:16px; padding:16px; border:1px solid var(--admin-border); border-radius:14px; margin-bottom:12px; background:rgba(255,255,255,0.03); transition: 0.2s;">
             ${item.imageUrl
-                ? `<img src="${item.imageUrl}" style="width:50px; height:50px; border-radius:8px; object-fit:cover;">`
-                : `<div style="width:50px; height:50px; border-radius:8px; background:#1f252f; display:flex; align-items:center; justify-content:center; font-size:20px;">📦</div>`
+                ? `<img src="${item.imageUrl}" style="width:56px; height:56px; border-radius:10px; object-fit:cover; border: 1px solid var(--admin-border);">`
+                : `<div style="width:56px; height:56px; border-radius:10px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; font-size:24px; color: rgba(255,255,255,0.1);"><i class="bi bi-box"></i></div>`
             }
             <div style="flex:1;">
-                <div style="font-weight:700;">${item.name}</div>
-                <div style="font-size:12px; color:var(--text-muted);">${item.description || ''}</div>
+                <div style="font-weight:700; color: #fff;">${item.name}</div>
+                <div style="font-size:12px; color:var(--text-muted);">
+                    <span class="badge bg-secondary" style="font-size: 10px; opacity: 0.8;">${item.categoryName || 'General'}</span>
+                    ${item.description || 'No description provided.'}
+                </div>
             </div>
             <div style="text-align:right;">
-                <div style="font-weight:800; color:var(--primary);">₱${Number(item.price).toFixed(2)}</div>
-                <div style="font-size:11px; color:var(--text-muted);">Stock: ${item.stock}</div>
+                <div style="font-weight:800; color:var(--admin-primary); font-size: 16px;">₱${Number(item.price).toFixed(2)}</div>
+                <div style="font-size:11px; color:var(--text-muted); font-weight: 700;">Stock: ${item.stock}</div>
             </div>
-            <button class="btn warn" style="padding:4px 8px; font-size:12px;" onclick="deleteStallItem(${item.id}, ${stallId})">✕</button>
+            <button class="tool-btn" style="color: #ef4444; width: 32px; height: 32px; font-size: 14px;" onclick="deleteStallItem(${item.id}, ${stallId})">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
     `).join('');
 }
@@ -563,7 +597,7 @@ async function loadStallItems(stallId) {
 async function deleteStallItem(itemId, stallId) {
     const confirmed = await showConfirm('Are you sure you want to delete this item?');
     if (!confirmed) return;
-    await apiFetch(`${API}/stall-items/${itemId}`, { method: 'DELETE' });
-    showToast('Item deleted successfully.', 'success');
+    await apiFetch(`${API}/products/${itemId}`, { method: 'DELETE' });
+    showToast('Product deleted.', 'success');
     await loadStallItems(stallId);
 }

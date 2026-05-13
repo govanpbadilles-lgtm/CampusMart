@@ -1,5 +1,292 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+@model CampusMart.Models.ViewModels.User.OrderHistoryViewModel
 @{
+    ViewData["Title"] = "My Purchase History";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+    var openReceiptId = ViewBag.OpenReceiptId as int?;
+}
+
+<div class="container-fluid py-4">
+    <div class="order-history-hero mb-5 animate-fade-in">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div>
+                <span class="cm-pill mb-2"><i class="bi bi-shield-check"></i> Verified purchases</span>
+                <h1 class="hero-title mb-1">Order history</h1>
+                <p class="text-white-50 small mb-0">Track purchases and open receipts in a quick popup—no public home layout.</p>
+            </div>
+            <div class="d-flex gap-3">
+                <div class="glass-card px-4 py-2 text-center">
+                    <span class="d-block fs-4 fw-900 text-white">@Model.Orders.Count</span>
+                    <span class="text-white-50 x-small fw-700 text-uppercase">Orders</span>
+                </div>
+                <div class="glass-card px-4 py-2 text-center border-warning border-opacity-25">
+                    <span class="d-block fs-4 fw-900 text-warning">₱@Model.Orders.Sum(o => o.TotalAmount).ToString("N0")</span>
+                    <span class="text-white-50 x-small fw-700 text-uppercase">Spent</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Orders.Any())
+    {
+        <div class="order-list-elite animate-fade-in delay-1">
+            <div class="table-responsive glass-card overflow-hidden border border-white border-opacity-10 rounded-3">
+                <table class="table table-dark table-hover mb-0 order-history-table align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Order</th>
+                            <th>Payment &amp; pickup</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders)
+                        {
+                            <tr>
+                                <td class="ps-4 py-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="receipt-icon-hex">
+                                            <i class="bi bi-receipt"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-white fw-800">#@order.OrderId.ToString("D5")</div>
+                                            <div class="text-white-50 x-small">@order.CreatedAt.ToString("MMM dd, yyyy • h:mm tt")</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4">
+                                    <div class="text-white small fw-600 mb-1">
+                                        <i class="bi bi-wallet2 text-warning me-2"></i>
+                                        @(order.PaymentMethod == "Cash" ? "Cash on delivery" : (order.PaymentMethod ?? "Cash on delivery"))
+                                    </div>
+                                    <div class="text-white-50 x-small" style="max-width: 260px;">
+                                        <i class="bi bi-geo-alt text-warning me-1"></i>
+                                        @{
+                                            var addr = order.ShippingAddress ?? "";
+                                            var shortAddr = addr.Length > 100 ? addr.Substring(0, 97) + "…" : addr;
+                                        }
+                                        @(string.IsNullOrEmpty(shortAddr) ? "Campus stall pickup" : shortAddr)
+                                    </div>
+                                </td>
+                                <td class="py-4">
+                                    <div class="avatar-group-elite">
+                                        @foreach (var item in order.Items.Take(3))
+                                        {
+                                            <div class="avatar-item" title="@item.ProductName">
+                                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                                {
+                                                    <img src="@item.ImageUrl" alt="">
+                                                }
+                                                else
+                                                {
+                                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-dark">
+                                                        <i class="bi bi-box text-white-50"></i>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                        @if (order.Items.Count > 3)
+                                        {
+                                            <div class="avatar-more">+@(order.Items.Count - 3)</div>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="py-4">
+                                    <div class="text-warning fw-900 fs-5">₱@order.TotalAmount.ToString("N2")</div>
+                                    <div class="text-white-50 x-small">@order.ItemCount items</div>
+                                </td>
+                                <td class="py-4">
+                                    @{
+                                        var statusClass = order.Status.ToLower() == "confirmed" ? "status-confirmed" :
+                                            order.Status.ToLower() == "pending" ? "status-pending" : "status-other";
+                                    }
+                                    <span class="elite-status-pill @statusClass">@order.Status</span>
+                                </td>
+                                <td class="text-end pe-4 py-4">
+                                    <button type="button" class="cm-btn-outline py-2 px-3 fs-7 d-inline-flex align-items-center gap-2 btn-view-receipt" data-order-id="@order.OrderId">
+                                        <i class="bi bi-receipt-cutoff"></i> View receipt
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state-elite text-center py-5 animate-fade-in">
+            <div class="glass-card p-5 d-inline-block border-dashed" style="max-width: 500px;">
+                <div class="empty-icon-circle mb-4">
+                    <i class="bi bi-bag-x"></i>
+                </div>
+                <h3 class="fw-800 text-white mb-2">No orders yet</h3>
+                <p class="text-white-50 mb-4">Your purchase history is empty. Browse stalls from the dashboard.</p>
+                <a asp-controller="UserDashboard" asp-action="Index" class="cm-btn-primary px-5 py-3">
+                    Start shopping <i class="bi bi-shop ms-2"></i>
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Receipt popup (centered modal) -->
+<div class="modal fade" id="orderReceiptModal" tabindex="-1" aria-labelledby="orderReceiptModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg order-receipt-print-scope">
+        <div class="modal-content border border-warning border-opacity-25 shadow-lg" style="background: linear-gradient(165deg, #141418 0%, #0a0a0c 100%);">
+            <div class="modal-header border-secondary border-opacity-25 no-print-receipt-ui">
+                <h5 class="modal-title text-white fw-800" id="orderReceiptModalLabel">Receipt</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" id="orderReceiptModalBody">
+                <div class="text-center py-5 text-white-50">
+                    <div class="spinner-border text-warning" role="status"></div>
+                    <p class="small mt-3 mb-0">Loading receipt…</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .order-history-table {
+        --bs-table-bg: rgba(0, 0, 0, 0.25);
+        --bs-table-hover-bg: rgba(255, 255, 255, 0.06);
+        --bs-table-border-color: rgba(255, 255, 255, 0.08);
+        color: #fff;
+    }
+    .order-history-table thead th {
+        background: rgba(255, 255, 255, 0.06) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding-top: 1.25rem;
+        padding-bottom: 1.25rem;
+    }
+    .order-history-table tbody td {
+        border-color: rgba(255, 255, 255, 0.06) !important;
+    }
+    .order-history-table tbody tr {
+        background-color: rgba(0, 0, 0, 0.15) !important;
+    }
+    .receipt-icon-hex {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.25), rgba(255, 193, 7, 0.06));
+        border: 1px solid rgba(255, 193, 7, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        color: #ffc107;
+        font-size: 1.2rem;
+    }
+    .avatar-group-elite { display: flex; align-items: center; }
+    .avatar-item {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid #0f0f11;
+        overflow: hidden;
+        margin-left: -10px;
+        transition: transform 0.2s ease;
+    }
+    .avatar-item:first-child { margin-left: 0; }
+    .avatar-item:hover { transform: translateY(-5px); z-index: 10; }
+    .avatar-item img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-more {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+        border: 2px solid #0f0f11;
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: -10px;
+    }
+    .elite-status-pill {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .status-confirmed { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.35); }
+    .status-pending { background: rgba(255, 193, 7, 0.15); color: #fde047; border: 1px solid rgba(255, 193, 7, 0.25); }
+    .status-other { background: rgba(255, 255, 255, 0.08); color: #e5e5e5; border: 1px solid rgba(255, 255, 255, 0.12); }
+    .empty-icon-circle {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px dashed rgba(255, 255, 255, 0.12);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: rgba(255, 255, 255, 0.25);
+    }
+</style>
+
+@section Scripts {
+<script>
+(function () {
+    var modalEl = document.getElementById('orderReceiptModal');
+    var bodyEl = document.getElementById('orderReceiptModalBody');
+    var titleEl = document.getElementById('orderReceiptModalLabel');
+    if (!modalEl || !bodyEl) return;
+
+    var receiptModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+    function pad5(n) { return String(n).padStart(5, '0'); }
+
+    async function openReceipt(orderId) {
+        titleEl.textContent = 'Receipt #' + pad5(orderId);
+        bodyEl.innerHTML = '<div class="text-center py-5 text-white-50"><div class="spinner-border text-warning" role="status"></div><p class="small mt-3 mb-0">Loading receipt…</p></div>';
+        receiptModal.show();
+        try {
+            var res = await fetch('@Url.Content("~/Order/ReceiptBody")?id=' + encodeURIComponent(orderId), {
+                headers: { 'Accept': 'text/html' }
+            });
+            if (!res.ok) {
+                bodyEl.innerHTML = '<div class="p-4 text-danger small">Could not load this receipt.</div>';
+                return;
+            }
+            var html = await res.text();
+            bodyEl.innerHTML = html;
+        } catch (e) {
+            bodyEl.innerHTML = '<div class="p-4 text-danger small">Network error loading receipt.</div>';
+        }
+    }
+
+    document.querySelectorAll('.btn-view-receipt').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var id = this.getAttribute('data-order-id');
+            if (id) openReceipt(parseInt(id, 10));
+        });
+    });
+
+    bodyEl.addEventListener('click', function (e) {
+        if (e.target.closest('#receiptModalPrintBtn')) {
+            window.print();
+        }
+    });
+
+    var autoOpen = @(openReceiptId.HasValue ? openReceiptId.Value.ToString() : "null");
+    if (autoOpen) {
+        document.addEventListener('DOMContentLoaded', function () { openReceipt(autoOpen); });
+    }
+})();
+</script>
 }

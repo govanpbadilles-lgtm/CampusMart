@@ -25,5 +25,46 @@ namespace CampusMart.Areas.Admin.Controllers
 
             return View(orders);
         }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var order = await _db.Orders
+                .Include(o => o.User)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null) return NotFound();
+
+            return View(order);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatus(int id, string status)
+        {
+            var order = await _db.Orders.FindAsync(id);
+            if (order != null)
+            {
+                order.Status = status;
+                await _db.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Order #{id} status updated to {status}.";
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteOrder(int id)
+        {
+            var order = await _db.Orders.FindAsync(id);
+            if (order != null)
+            {
+                _db.Orders.Remove(order);
+                await _db.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Order #{id} has been deleted.";
+            }
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
